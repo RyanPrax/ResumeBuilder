@@ -1,0 +1,1 @@
+-- Full SQLite schema for contact, summary, educations, jobs, job_bullets, projects, project_bullets, skill_categories, skills, certifications, awards, resumes, resume_sections, resume_items, resume_bullets.

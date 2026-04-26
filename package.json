@@ -1,0 +1,27 @@
+{
+  "name": "resume-builder",
+  "version": "1.0.0",
+  "description": "Local SPA for building tailored resumes — CSC3100 final",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "lint": "eslint .",
+    "fmt": "prettier --write .",
+    "vendor": "node scripts/vendor.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.2.1",
+    "better-sqlite3": "^9.4.3",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "bootstrap": "^5.3.2",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
