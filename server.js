@@ -28,7 +28,7 @@ for (const strFile of readdirSync(routesDir)) {
 app.use(express.static(path.join(__dirname, "public")));
 
 // SPA catch-all: return index.html for any non-/api path so deep links and refreshes resolve correctly
-app.get("*", (req, res, next) => {
+app.get("/{*splat}", (req, res, next) => {
     if (req.path.startsWith("/api/")) return next();
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
