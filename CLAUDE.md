@@ -43,7 +43,7 @@ rm db/resume.db && npm start
 - **server.js** — Express bootstrap. Serves `public/` as static, mounts JSON routers under `/api/*`, applies migrations on boot via `lib/db.js`. Catch-all handler returns `public/index.html` for any non-`/api` path so deep links and refreshes (e.g. `/builder/5`) resolve to the SPA shell.
 - **lib/db.js** — `better-sqlite3` connection + schema migration runner. Reads `db/schema.sql` and applies it if `db/resume.db` is missing.
 - **lib/gemini.js** — Gemini API wrapper. Loads `process.env.GEMINI_API_KEY`, exposes `reviewSection(sectionType, text)`. Prompt templates per section type. Returns suggestions; never auto-writes user content.
-- **routes/** — One Express router per resource: `contact.js`, `summary.js`, `educations.js`, `jobs.js` (+ `job_bullets`), `projects.js` (+ `project_bullets`), `skills.js`, `skill_categories.js`, `certifications.js`, `awards.js`, `resumes.js`, `ai.js`. All return JSON.
+- **routes/** — One Express router per resource: `contact.js`, `summary.js`, `educations.js`, `jobs.js` (+ `job_bullets`), `projects.js` (+ `project_bullets`), `skills.js`, `skill-categories.js`, `certifications.js`, `awards.js`, `resumes.js`, `ai.js`. All return JSON.
 - **db/schema.sql** — Single source of truth for tables. Single-user app, no auth. See `implementation_plan.md` § Data model for the full schema.
 - **public/index.html** — SPA shell: skip-link, `<header>`, `<main id="view-root">`, `<footer>`, credits modal. Loads vendored Bootstrap + JS modules.
 - **public/js/app.js** — History API router. Intercepts `<a data-spa>` clicks, calls `history.pushState`, listens for `popstate`, and dispatches to view modules. Exposes a `navigate(path)` helper for programmatic navigation after API calls.
