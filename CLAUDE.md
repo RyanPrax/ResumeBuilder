@@ -149,7 +149,7 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 
 - **Bootstrap utilities only.** Do not add custom CSS rules. The single permitted exception is `public/css/print.css` (print layout). If a custom rule is unavoidable elsewhere, raise it explicitly — it must be added to the flagged-CSS list in `implementation_plan.md`.
 - Vanilla JS, ES modules. **No React, Vue, jQuery, or other frameworks.**
-- 2-space indentation, semicolons, single quotes (enforced by Prettier via `npm run fmt`).
+- 4-space indentation, semicolons, double quotes (enforced by Prettier via `npm run fmt`).
 - Express routes return JSON. No server-side rendering, no MVC layering.
 - Keep `index.html` thin — JS and CSS live in modular files under `public/js/` and `public/css/`.
 - Accessibility is non-negotiable: semantic landmarks, labeled inputs, keyboard navigability, focus management in modals, `prefers-reduced-motion` respected. Target Lighthouse a11y ≥ 93.
@@ -165,7 +165,7 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 
 ## Coding Conventions
 
-- **Hungarian Notation**: Use Hungarian notation for variable naming. For example, a string variable like "String" will be named strFoo, a decimal/float like 0.75 will be named decBar, an sqlite connection will be named dbDatabase
+- **Hungarian Notation**: Use Hungarian notation for variable naming. For example, a string variable like "String" will be named strFoo, a decimal/float like 0.75 will be named decBar, an sqlite connection will be named dbDatabase. **Exception**: variables that map directly to database columns (e.g. in route handlers binding request body fields to SQL columns) should match the column name exactly (e.g. `full_name`, `links_json`) to avoid cognitive overhead and keep DB mappings transparent.
 - **camelCase**: Use camelCase when naming all variables
 - **Async Javascript**: Prefer to use async await rather than .then() when performing asynchronous javascript functions
 - **No Build Tools**: Avoid build tools such as Babel, Webpack, or Vite, unless it is explicitly required. Code must run either directly in the browser or via nodeJS
@@ -209,6 +209,7 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 
 - Prefer simpler, less complex, and maintainable code
 - Ask for clarification if uncertain
+- **Keep everything in sync**: whenever a design decision changes, update all affected code, routes, schema, and docs (`CLAUDE.md`, `implementation_plan.md`, etc.) in the same commit. Never leave any file — code or doc — describing a design that no longer matches reality.
 
 ## Testing
 

@@ -44,28 +44,36 @@ Gemini key storage **`.env` only.**
 Single-user local app — no auth.
 
 ```
+-- Singleton (always one row, id=1)
 contact            (id, full_name, email, phone, location, links_json, updated_at)
-                   -- single-row table; pre-seed id=1
-summary            (id, content, updated_at)
-                   -- single-row table; optional content
+                   -- CHECK (id = 1); links_json is JSON array of {label,url}
 
+-- Summary library (non-singleton — store multiple variants, pick one per resume)
+summaries          (id, label, content, sort_order, updated_at)
+
+-- Profile library tables
 educations         (id, institution, degree, field, start_date, end_date, gpa, details, sort_order)
 jobs               (id, company, title, location, start_date, end_date, is_current, sort_order)
-job_bullets        (id, job_id FK, text, sort_order)
+                   -- is_current CHECK (0,1)
+job_bullets        (id, job_id FK → jobs CASCADE, text, sort_order)
 projects           (id, name, link, description, start_date, end_date, sort_order)
-project_bullets    (id, project_id FK, text, sort_order)
+project_bullets    (id, project_id FK → projects CASCADE, text, sort_order)
 skill_categories   (id, name, sort_order)
-skills             (id, category_id FK NULL, name, sort_order)
-certifications     (id, name, issuer, issued_date, link, sort_order)
-awards             (id, name, issuer, awarded_date, description, sort_order)
+skills             (id, category_id FK NULL → skill_categories SET NULL, name, sort_order)
+certifications     (id, name, issuer, issued_date, sort_order)
+awards             (id, name, issuer, issued_date, description, sort_order)
 
+-- Resume builder tables (live selections — library edits propagate to all resumes)
 resumes            (id, name, target_role, created_at, updated_at)
-resume_sections    (id, resume_id FK, section_type, included BOOL, sort_order)
-                   -- section_type ∈ {contact,summary,education,jobs,projects,skills,certifications,awards}
-resume_items       (id, resume_id FK, section_type, item_id, sort_order)
-                   -- selected top-level items (job, project, etc.)
-resume_bullets     (id, resume_id FK, parent_item_id, bullet_id, sort_order)
-                   -- selected child bullets for jobs/projects
+resume_sections    (id, resume_id FK CASCADE, section_type, included, sort_order)
+                   -- section_type CHECK ∈ {contact,summary,education,jobs,projects,skills,certifications,awards}
+                   -- included CHECK (0,1); UNIQUE (resume_id, section_type)
+resume_items       (id, resume_id FK CASCADE, section_type, item_id, sort_order)
+                   -- item_id points to the relevant library table row for section_type
+                   -- UNIQUE (resume_id, section_type, item_id)
+resume_bullets     (id, resume_id FK CASCADE, parent_item_id, bullet_type, bullet_id, sort_order)
+                   -- bullet_type CHECK ∈ {job, project} — disambiguates job_bullets vs project_bullets
+                   -- UNIQUE (resume_id, parent_item_id, bullet_id)
 ```
 
 Use `better-sqlite3` (synchronous, fast for local single-user). Schema lives in `db/schema.sql`, applied on boot if DB missing.
