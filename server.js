@@ -6,6 +6,8 @@ import express from "express";
 import { readdirSync } from "fs";
 import { pathToFileURL, fileURLToPath } from "url";
 import path from "path";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./lib/swagger.js";
 
 // __dirname equivalent for ES modules
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,6 +25,9 @@ for (const strFile of readdirSync(routesDir)) {
     );
     app.use(`/api/${strName}`, router);
 }
+
+// Swagger UI at /api/swagger (mounted before static so the catch-all never intercepts it)
+app.use("/api/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Serve static files (HTML, CSS, JS, vendor assets) from public/
 app.use(express.static(path.join(__dirname, "public")));
