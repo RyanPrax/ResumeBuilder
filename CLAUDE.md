@@ -43,7 +43,7 @@ rm db/resume.db && npm start
 - **server.js** — Express bootstrap. Serves `public/` as static, mounts JSON routers under `/api/*`, applies migrations on boot via `lib/db.js`. Catch-all handler returns `public/index.html` for any non-`/api` path so deep links and refreshes (e.g. `/builder/5`) resolve to the SPA shell.
 - **lib/db.js** — `better-sqlite3` connection + schema migration runner. Reads `db/schema.sql` and applies it if `db/resume.db` is missing.
 - **lib/gemini.js** — Gemini API wrapper. Loads `process.env.GEMINI_API_KEY`, exposes `reviewSection(sectionType, text)`. Prompt templates per section type. Returns suggestions; never auto-writes user content.
-- **routes/** — One Express router per resource: `contact.js`, `summary.js`, `educations.js`, `jobs.js` (+ `job_bullets`), `projects.js` (+ `project_bullets`), `skills.js`, `skill-categories.js`, `certifications.js`, `awards.js`, `resumes.js`, `ai.js`. All return JSON.
+- **routes/** — One Express router per resource: `contact.js`, `summary.js`, `educations.js`, `jobs.js` (bullets nested under `/api/jobs/:id/bullets`), `projects.js` (bullets nested under `/api/projects/:id/bullets`), `skills.js`, `skill-categories.js`, `certifications.js`, `awards.js`, `resumes.js`, `ai.js`. All return JSON.
 - **db/schema.sql** — Single source of truth for tables. Single-user app, no auth. See `implementation_plan.md` § Data model for the full schema.
 - **public/index.html** — SPA shell: skip-link, `<header>`, `<main id="view-root">`, `<footer>`, credits modal. Loads vendored Bootstrap + JS modules.
 - **public/js/app.js** — History API router. Intercepts `<a data-spa>` clicks, calls `history.pushState`, listens for `popstate`, and dispatches to view modules. Exposes a `navigate(path)` helper for programmatic navigation after API calls.
@@ -174,6 +174,7 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 - **External Libraries Local**: All external libraries that are included must NOT use a CDN, but rather be included in project source files
 - **Bootstrap Utility Classes**: Use only standard Bootstrap 5+ utility classes for layout, spacing, and colors. Avoid creating CSS classes or inline styles unless the design cannot be achieved without them
 - **Comments**: Provide verbose comments to explain the flow of the code and anything that would be difficult for a beginner developer to understand
+- **Database queries**: Always use `.all()` for SELECT queries, even when only one row is expected. This keeps all API responses as JSON arrays and simplifies frontend handling.
 
 ## Accessibility
 
