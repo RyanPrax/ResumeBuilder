@@ -69,4 +69,18 @@ router.put("/:id", (req, res) => {
     });
 });
 
+router.delete("/:id", (req, res) => {
+    const id = req.params.id?.trim();
+
+    if (!id) {
+        return res.status(400).json({ message: "id is required" });
+    }
+
+    const result = db.prepare("DELETE FROM awards WHERE id = @id").run({ id });
+    if (result.changes === 0) {
+        return res.status(404).json({ message: "Award not found" });
+    }
+    res.status(200).json({ message: "Award deleted successfully" });
+});
+
 export default router;
