@@ -168,6 +168,9 @@ router.post("/:id/bullets", (req, res) => {
     if (!job_id) {
         return res.status(400).json({ message: "job id is required" });
     }
+    if (!text) {
+        return res.status(400).json({ message: "text is required" });
+    }
     try {
         const arrJob = db.prepare("SELECT id FROM jobs WHERE id = @id").all({ id: job_id });
         if (arrJob.length === 0) {

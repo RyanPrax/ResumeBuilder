@@ -156,6 +156,17 @@ test("POST /api/projects/:id/bullets — returns 404 for unknown project id", as
     assert.equal(res.status, 404);
 });
 
+test("POST /api/projects/:id/bullets — returns 400 when text is missing", async () => {
+    const res = await fetch(`${strBaseUrl}/${intTestProjectId}/bullets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sort_order: 0 }),
+    });
+    assert.equal(res.status, 400);
+    const objBody = await res.json();
+    assert.match(objBody.message, /text/i);
+});
+
 test("POST /api/projects/:id/bullets — returns 201 and new id with valid body", async () => {
     const res = await fetch(`${strBaseUrl}/${intTestProjectId}/bullets`, {
         method: "POST",

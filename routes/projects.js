@@ -163,6 +163,9 @@ router.post("/:id/bullets", (req, res) => {
     if (!project_id) {
         return res.status(400).json({ message: "project id is required" });
     }
+    if (!text) {
+        return res.status(400).json({ message: "text is required" });
+    }
     try {
         const arrProject = db.prepare("SELECT id FROM projects WHERE id = @id").all({ id: project_id });
         if (arrProject.length === 0) {

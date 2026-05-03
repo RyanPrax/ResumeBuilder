@@ -254,6 +254,36 @@ test("PUT /api/resumes/:id/selections — returns 400 when a section entry is no
     assert.match(objBody.message, /section/i);
 });
 
+test("PUT /api/resumes/:id/selections — returns 400 when an item entry is not an object", async () => {
+    const res = await fetch(`${strBaseUrl}/${intTestId}/selections`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            sections: [],
+            items: [null],
+            bullets: [],
+        }),
+    });
+    assert.equal(res.status, 400);
+    const objBody = await res.json();
+    assert.match(objBody.message, /item/i);
+});
+
+test("PUT /api/resumes/:id/selections — returns 400 when a bullet entry is not an object", async () => {
+    const res = await fetch(`${strBaseUrl}/${intTestId}/selections`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            sections: [],
+            items: [],
+            bullets: [null],
+        }),
+    });
+    assert.equal(res.status, 400);
+    const objBody = await res.json();
+    assert.match(objBody.message, /bullet/i);
+});
+
 test("PUT /api/resumes/:id/selections — returns 400 for invalid included value in sections", async () => {
     const res = await fetch(`${strBaseUrl}/${intTestId}/selections`, {
         method: "PUT",
