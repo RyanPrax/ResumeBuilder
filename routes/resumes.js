@@ -142,6 +142,9 @@ router.put("/:id/selections", (req, res) => {
         // Validate each item_id exists in its correct library table.
         // Table name comes from a whitelist so template literal is safe here.
         for (const item of items) {
+            if (!item || typeof item !== "object") {
+                return res.status(400).json({ message: "items entries must be objects" });
+            }
             const strTable = SECTION_ITEM_TABLES[item.section_type];
             if (!strTable) {
                 return res.status(400).json({ message: `Invalid section_type: ${item.section_type}` });
@@ -155,6 +158,9 @@ router.put("/:id/selections", (req, res) => {
         // Validate each bullet_id exists in its correct bullet table AND belongs to the declared parent.
         // strParentCol comes from a two-value whitelist so the template literal is safe.
         for (const b of bullets) {
+            if (!b || typeof b !== "object") {
+                return res.status(400).json({ message: "bullets entries must be objects" });
+            }
             const strBulletTable = b.bullet_type === "job"
                 ? "job_bullets"
                 : b.bullet_type === "project"
