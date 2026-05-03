@@ -155,7 +155,17 @@ router.put("/:id/selections", (req, res) => {
             }
         }
 
-        // Validate each bullet_id exists in its correct bullet table AND belongs to the declared parent.
+        // Build a quick-lookup set of items selected in this payload so each bullet's
+        // parent can be confirmed present. Key is `${section_type}:${item_id}`. A bullet
+        // whose parent is not in this set would create an orphaned selection that the
+        // builder/preview layer cannot represent (bullet shown under a job/project that
+        // was not selected into the resume).
+        const setSelectedItems = new Set(
+            items.map((item) => `${item.section_type}:${item.item_id}`),
+        );
+
+        // Validate each bullet_id exists in its correct bullet table AND belongs to the declared parent,
+        // AND that the parent item is included in the items selection payload.
         // strParentCol comes from a two-value whitelist so the template literal is safe.
         for (const b of bullets) {
             if (!b || typeof b !== "object") {
@@ -168,6 +178,13 @@ router.put("/:id/selections", (req, res) => {
                     : null;
             if (!strBulletTable) {
                 return res.status(400).json({ message: `Invalid bullet_type: ${b.bullet_type}` });
+            }
+            // bullet_type "job" → items section_type "jobs"; "project" → "projects"
+            const strParentSectionType = b.bullet_type === "job" ? "jobs" : "projects";
+            if (!setSelectedItems.has(`${strParentSectionType}:${b.parent_item_id}`)) {
+                return res.status(400).json({
+                    message: `Bullet ${b.bullet_id} references parent_item_id ${b.parent_item_id} which is not in the items selection`,
+                });
             }
             const strParentCol = b.bullet_type === "job" ? "job_id" : "project_id";
             const arrBullet = db

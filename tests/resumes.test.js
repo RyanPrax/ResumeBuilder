@@ -181,7 +181,12 @@ test("PUT /api/resumes/:id/selections — saves job and project bullets with ove
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             sections: [],
-            items: [],
+            // parent items must be present in the items selection payload —
+            // bullets cannot reference jobs/projects that were not included.
+            items: [
+                { section_type: "jobs", item_id: intSharedItemId, sort_order: 0 },
+                { section_type: "projects", item_id: intSharedItemId, sort_order: 0 },
+            ],
             bullets: [
                 {
                     parent_item_id: intSharedItemId,
@@ -297,6 +302,21 @@ test("PUT /api/resumes/:id/selections — returns 400 for invalid included value
     assert.equal(res.status, 400);
     const objBody = await res.json();
     assert.match(objBody.message, /included/i);
+});
+
+test("PUT /api/resumes/:id/selections — returns 400 when bullet's parent_item_id is not in items selection", async () => {
+    const res = await fetch(`${strBaseUrl}/${intTestId}/selections`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            sections: [],
+            items: [],
+            bullets: [{ bullet_type: "job", bullet_id: 1, parent_item_id: 999999 }],
+        }),
+    });
+    assert.equal(res.status, 400);
+    const objBody = await res.json();
+    assert.match(objBody.message, /parent_item_id|items selection/i);
 });
 
 test("PUT /api/resumes/:id/selections — returns 400 for invalid bullet_type in bullets", async () => {

@@ -72,12 +72,30 @@ function detectInjection(strText) {
 // Route handler
 // ---------------------------------------------------------------------------
 
+// Allowed sectionType values — must stay in sync with the AiReviewInput enum
+// in lib/swagger.js and the SECTION_FOCUS keys in lib/gemini.js. Any other
+// value is rejected with 400 so the API never forwards unsupported sections
+// to Gemini without section-specific guidance.
+const ALLOWED_SECTION_TYPES = new Set([
+    "contact",
+    "summary",
+    "education",
+    "jobs",
+    "projects",
+    "skills",
+    "certifications",
+    "awards",
+]);
+
 router.post("/review", async (req, res) => {
     const sectionType = typeof req.body.sectionType === "string" ? req.body.sectionType.trim() : null;
     const text = typeof req.body.text === "string" ? req.body.text.trim() : null;
 
     if (!sectionType) {
         return res.status(400).json({ message: "sectionType is required" });
+    }
+    if (!ALLOWED_SECTION_TYPES.has(sectionType)) {
+        return res.status(400).json({ message: `Invalid sectionType: ${sectionType}` });
     }
     if (!text) {
         return res.status(400).json({ message: "text is required" });

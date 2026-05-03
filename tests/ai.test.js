@@ -38,6 +38,17 @@ test("POST /api/ai/review — returns 400 when sectionType is missing", async ()
     assert.equal(objBody.message, "sectionType is required");
 });
 
+test("POST /api/ai/review — returns 400 when sectionType is not in the allowed enum", async () => {
+    const res = await fetch(`${strBaseUrl}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "foo", text: "Some text." }),
+    });
+    assert.equal(res.status, 400);
+    const objBody = await res.json();
+    assert.match(objBody.message, /sectionType/);
+});
+
 test("POST /api/ai/review — returns 400 when text is missing", async () => {
     const res = await fetch(`${strBaseUrl}/review`, {
         method: "POST",
