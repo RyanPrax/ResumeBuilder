@@ -182,7 +182,7 @@ CREATE TABLE IF NOT EXISTS resume_bullets (
   bullet_type    TEXT    NOT NULL CHECK (bullet_type IN ('job', 'project')),
   bullet_id      INTEGER NOT NULL,
   sort_order     INTEGER NOT NULL DEFAULT 0,
-  UNIQUE (resume_id, parent_item_id, bullet_id)
+  UNIQUE (resume_id, parent_item_id, bullet_type, bullet_id)
 );
 CREATE INDEX IF NOT EXISTS idx_resume_bullets_resume ON resume_bullets(resume_id);
 
