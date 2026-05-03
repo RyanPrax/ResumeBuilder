@@ -34,4 +34,17 @@ export default [
             sourceType: "module",
         },
     },
+
+    // Test files: Node globals + fetch (available in Node 18+)
+    {
+        files: ["tests/**/*.js"],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+                fetch: "readonly",
+            },
+            ecmaVersion: 2022,
+            sourceType: "module",
+        },
+    },
 ];

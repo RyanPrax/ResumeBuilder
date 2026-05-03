@@ -214,6 +214,49 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 
 ## Testing
 
-- Ensure ALL GET API routes return JSON arrays
-- Handle any missing input data with proper error messaging
-- POST and PUT routes should validate all required fields
+Run tests with `npm test` (Node's built-in `node:test` runner). All tests must pass before every commit — see **Before Every Commit** above.
+
+### What requires tests
+
+**Must have tests:**
+- **API route handlers** (`routes/*.js`) — every route file needs a corresponding test file in `tests/`.
+- **Library modules with logic** (`lib/db.js`, `lib/gemini.js`) — connection, schema, migration, prompt construction, and any non-trivial helper.
+- **Security-sensitive code** — input validation, injection detection, sanitization. Test both the blocked cases and that legitimate input passes through cleanly.
+
+**Does not need tests:**
+- HTML markup (`public/index.html`) — verified by Lighthouse and manual review.
+- CSS (`public/css/`, Bootstrap utility classes) — visual correctness is not machine-testable here.
+- Frontend view and component modules (`public/js/views/`, `public/js/components/`, `public/js/app.js`) — DOM manipulation; verify manually in the browser.
+- `server.js` — thin bootstrap; covered implicitly by route tests that spin up Express.
+
+### Test file placement
+
+```
+tests/
+  ai.test.js            ← routes/ai.js
+  contact.test.js       ← routes/contact.js
+  awards.test.js        ← routes/awards.js
+  ...
+lib/
+  db.test.js            ← lib/db.js (co-located, existing convention)
+```
+
+### How to write route tests
+
+Spin up a minimal Express app on an ephemeral port — do not rely on the real server running. See `tests/ai.test.js` for the established pattern using `before()`/`after()` and `node:http` + `fetch`.
+
+### Minimum assertions per route type
+
+| Route | Assert |
+|---|---|
+| `GET /` | 200, body is a JSON array (empty array is valid) |
+| `GET /:id` | 200 + array for a known ID; array for unknown ID |
+| `POST /` | 201 on success; 400 when any required field is missing |
+| `PUT /:id` | 200 on success; 400 when required field missing; 404 for unknown ID |
+| `DELETE /:id` | 200 on success; 404 for unknown ID |
+
+Use `id=999999` to trigger 404s without inserting test data.
+
+### Do not mock the database
+
+Route tests must hit the real SQLite DB. Mocking the DB risks tests passing while real queries break. GET and validation tests work on an empty DB with no setup. For tests that need a record (e.g. `PUT /:id`), insert it in the test and delete it in `after()`.
