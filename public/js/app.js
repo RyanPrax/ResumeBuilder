@@ -1,4 +1,4 @@
-// AI: Generated with Claude Code — History API SPA router for ResumeBuilder.
+// AI: Generated with Claude Code — History API SPA router for Resume Frog.
 // Intercepts data-spa link clicks, updates the URL with pushState, and dispatches
 // to the correct view module. Also handles popstate (browser back/forward).
 

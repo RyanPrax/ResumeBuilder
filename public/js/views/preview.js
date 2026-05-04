@@ -1,4 +1,4 @@
-// AI: Generated with Claude Code — Preview view for ResumeBuilder.
+// AI: Generated with Claude Code — Preview view for Resume Frog.
 // Loads saved resume selections and renders a digital resume layout.
 
 import {

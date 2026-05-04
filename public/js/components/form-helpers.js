@@ -1,4 +1,4 @@
-// AI: Generated with Claude Code — reusable form utility functions for ResumeBuilder views.
+// AI: Generated with Claude Code — reusable form utility functions for Resume Frog views.
 // These helpers reduce boilerplate across profile tabs: reading values, filling forms,
 // showing validation errors, and building confirm-delete dialogs.
 

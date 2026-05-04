@@ -1,4 +1,4 @@
-// AI: Generated with Claude Code — idempotent seed script for ResumeBuilder demo data.
+// AI: Generated with Claude Code — idempotent seed script for Resume Frog demo data.
 // Inserts three sample resumes (beginner, mid-level, senior) into the local SQLite DB.
 // Run with: npm run seed
 // Safe to run multiple times — each resume is skipped if it already exists by name.

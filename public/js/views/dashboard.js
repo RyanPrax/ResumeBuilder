@@ -1,4 +1,4 @@
-// AI: Generated with Claude Code — Dashboard view for ResumeBuilder.
+// AI: Generated with Claude Code — Dashboard view for Resume Frog.
 // Renders the list of saved resumes with Open Builder / Preview / Delete actions.
 // Includes a "New Resume" modal and an "Edit Profile Data" link.
 

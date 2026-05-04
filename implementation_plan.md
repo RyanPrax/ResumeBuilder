@@ -1,4 +1,4 @@
-# ResumeBuilder — Implementation Plan
+# Resume Frog — Implementation Plan
 
 ## Context
 

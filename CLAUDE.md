@@ -21,7 +21,7 @@ Project-specific agents live in `.claude/agents/`. Claude Code loads them automa
 
 ## Project Overview
 
-**ResumeBuilder** — local-only single-page application for the CSC3100 final. Helps students store a library of jobs/projects/skills/certs/awards, then assemble a tailored, printable resume for a target role. Gemini AI is used on-demand to review user-entered prose. See `implementation_plan.md` for the full design.
+**Resume Frog** — local-only single-page application for the CSC3100 final. Helps students store a library of jobs/projects/skills/certs/awards, then assemble a tailored, printable resume for a target role. Gemini AI is used on-demand to review user-entered prose. See `implementation_plan.md` for the full design.
 
 Stack (locked by assignment):
 - Frontend: vanilla HTML/CSS/JS, **no React or other frameworks**. SPA — single `public/index.html`, History API routing (`pushState` + `popstate`), views show/hide via DOM swaps.

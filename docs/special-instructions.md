@@ -1,6 +1,6 @@
 # Special Instructions
 
-ResumeBuilder is designed to run locally. It uses Node.js, Express, SQLite, and a browser-based single page application.
+Resume Frog is designed to run locally. It uses Node.js, Express, SQLite, and a browser-based single page application.
 
 ## Requirements
 

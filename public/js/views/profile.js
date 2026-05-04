@@ -1,4 +1,4 @@
-// AI: Generated with Claude Code — Profile view for ResumeBuilder.
+// AI: Generated with Claude Code — Profile view for Resume Frog.
 // Tabbed interface for all profile library tables:
 // contact, summary, education, jobs, projects, skills, certifications, awards.
 // Each tab renders a list of items with add/edit/delete forms.

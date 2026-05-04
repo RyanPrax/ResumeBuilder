@@ -1,4 +1,4 @@
-// AI: Generated with Claude Code — Builder view for ResumeBuilder.
+// AI: Generated with Claude Code — Builder view for Resume Frog.
 // Renders a checklist tree (sections → items → bullets) for assembling a resume
 // from the user's profile library. Loads existing selections and saves them back
 // via PUT /api/resumes/:id/selections.
