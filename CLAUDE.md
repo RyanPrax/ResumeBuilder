@@ -43,7 +43,7 @@ rm db/resume.db && npm start
 - **server.js** — Express bootstrap. Serves `public/` as static, mounts JSON routers under `/api/*`, applies migrations on boot via `lib/db.js`. Catch-all handler returns `public/index.html` for any non-`/api` path so deep links and refreshes (e.g. `/builder/5`) resolve to the SPA shell.
 - **lib/db.js** — `better-sqlite3` connection + schema migration runner. Reads `db/schema.sql` and applies it if `db/resume.db` is missing.
 - **lib/gemini.js** — Gemini API wrapper. Loads `process.env.GEMINI_API_KEY`, exposes `reviewSection(sectionType, text)`. Prompt templates per section type. Returns suggestions; never auto-writes user content.
-- **routes/** — One Express router per resource: `contact.js`, `summary.js`, `educations.js`, `jobs.js` (+ `job_bullets`), `projects.js` (+ `project_bullets`), `skills.js`, `skill_categories.js`, `certifications.js`, `awards.js`, `resumes.js`, `ai.js`. All return JSON.
+- **routes/** — One Express router per resource: `contact.js`, `summary.js`, `educations.js`, `jobs.js` (bullets nested under `/api/jobs/:id/bullets`), `projects.js` (bullets nested under `/api/projects/:id/bullets`), `skills.js`, `skill-categories.js`, `certifications.js`, `awards.js`, `resumes.js`, `ai.js`. All return JSON.
 - **db/schema.sql** — Single source of truth for tables. Single-user app, no auth. See `implementation_plan.md` § Data model for the full schema.
 - **public/index.html** — SPA shell: skip-link, `<header>`, `<main id="view-root">`, `<footer>`, credits modal. Loads vendored Bootstrap + JS modules.
 - **public/js/app.js** — History API router. Intercepts `<a data-spa>` clicks, calls `history.pushState`, listens for `popstate`, and dispatches to view modules. Exposes a `navigate(path)` helper for programmatic navigation after API calls.
@@ -149,7 +149,7 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 
 - **Bootstrap utilities only.** Do not add custom CSS rules. The single permitted exception is `public/css/print.css` (print layout). If a custom rule is unavoidable elsewhere, raise it explicitly — it must be added to the flagged-CSS list in `implementation_plan.md`.
 - Vanilla JS, ES modules. **No React, Vue, jQuery, or other frameworks.**
-- 2-space indentation, semicolons, single quotes (enforced by Prettier via `npm run fmt`).
+- 4-space indentation, semicolons, double quotes (enforced by Prettier via `npm run fmt`).
 - Express routes return JSON. No server-side rendering, no MVC layering.
 - Keep `index.html` thin — JS and CSS live in modular files under `public/js/` and `public/css/`.
 - Accessibility is non-negotiable: semantic landmarks, labeled inputs, keyboard navigability, focus management in modals, `prefers-reduced-motion` respected. Target Lighthouse a11y ≥ 93.
@@ -165,7 +165,7 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 
 ## Coding Conventions
 
-- **Hungarian Notation**: Use Hungarian notation for variable naming. For example, a string variable like "String" will be named strFoo, a decimal/float like 0.75 will be named decBar, an sqlite connection will be named dbDatabase
+- **Hungarian Notation**: Use Hungarian notation for variable naming. For example, a string variable like "String" will be named strFoo, a decimal/float like 0.75 will be named decBar, an sqlite connection will be named dbDatabase. **Exception**: variables that map directly to database columns (e.g. in route handlers binding request body fields to SQL columns) should match the column name exactly (e.g. `full_name`, `links_json`) to avoid cognitive overhead and keep DB mappings transparent.
 - **camelCase**: Use camelCase when naming all variables
 - **Async Javascript**: Prefer to use async await rather than .then() when performing asynchronous javascript functions
 - **No Build Tools**: Avoid build tools such as Babel, Webpack, or Vite, unless it is explicitly required. Code must run either directly in the browser or via nodeJS
@@ -174,6 +174,7 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 - **External Libraries Local**: All external libraries that are included must NOT use a CDN, but rather be included in project source files
 - **Bootstrap Utility Classes**: Use only standard Bootstrap 5+ utility classes for layout, spacing, and colors. Avoid creating CSS classes or inline styles unless the design cannot be achieved without them
 - **Comments**: Provide verbose comments to explain the flow of the code and anything that would be difficult for a beginner developer to understand
+- **Database queries**: Always use `.all()` for SELECT queries, even when only one row is expected. This keeps all API responses as JSON arrays and simplifies frontend handling.
 
 ## Accessibility
 
@@ -209,9 +210,53 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 
 - Prefer simpler, less complex, and maintainable code
 - Ask for clarification if uncertain
+- **Keep everything in sync**: whenever a design decision changes, update all affected code, routes, schema, and docs (`CLAUDE.md`, `implementation_plan.md`, etc.) in the same commit. Never leave any file — code or doc — describing a design that no longer matches reality.
 
 ## Testing
 
-- Ensure ALL GET API routes return JSON arrays
-- Handle any missing input data with proper error messaging
-- POST and PUT routes should validate all required fields
+Run tests with `npm test` (Node's built-in `node:test` runner). All tests must pass before every commit — see **Before Every Commit** above.
+
+### What requires tests
+
+**Must have tests:**
+- **API route handlers** (`routes/*.js`) — every route file needs a corresponding test file in `tests/`.
+- **Library modules with logic** (`lib/db.js`, `lib/gemini.js`) — connection, schema, migration, prompt construction, and any non-trivial helper.
+- **Security-sensitive code** — input validation, injection detection, sanitization. Test both the blocked cases and that legitimate input passes through cleanly.
+
+**Does not need tests:**
+- HTML markup (`public/index.html`) — verified by Lighthouse and manual review.
+- CSS (`public/css/`, Bootstrap utility classes) — visual correctness is not machine-testable here.
+- Frontend view and component modules (`public/js/views/`, `public/js/components/`, `public/js/app.js`) — DOM manipulation; verify manually in the browser.
+- `server.js` — thin bootstrap; covered implicitly by route tests that spin up Express.
+
+### Test file placement
+
+```
+tests/
+  ai.test.js            ← routes/ai.js
+  contact.test.js       ← routes/contact.js
+  awards.test.js        ← routes/awards.js
+  ...
+lib/
+  db.test.js            ← lib/db.js (co-located, existing convention)
+```
+
+### How to write route tests
+
+Spin up a minimal Express app on an ephemeral port — do not rely on the real server running. See `tests/ai.test.js` for the established pattern using `before()`/`after()` and `node:http` + `fetch`.
+
+### Minimum assertions per route type
+
+| Route | Assert |
+|---|---|
+| `GET /` | 200, body is a JSON array (empty array is valid) |
+| `GET /:id` | 200 + array for a known ID; array for unknown ID |
+| `POST /` | 201 on success; 400 when any required field is missing |
+| `PUT /:id` | 200 on success; 400 when required field missing; 404 for unknown ID |
+| `DELETE /:id` | 200 on success; 404 for unknown ID |
+
+Use `id=999999` to trigger 404s without inserting test data.
+
+### Do not mock the database
+
+Route tests must hit the real SQLite DB. Mocking the DB risks tests passing while real queries break. GET and validation tests work on an empty DB with no setup. For tests that need a record (e.g. `PUT /:id`), insert it in the test and delete it in `after()`.

@@ -1,2 +1,11 @@
 # Auto generated local Codex sandbox marker
 .codex
+
+# Secrets
+.env
+
+# Node.js
+node_modules
+
+# Databases
+resume.db*
