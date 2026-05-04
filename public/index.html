@@ -1,1 +1,173 @@
-<!-- SPA shell; skip-link, header, main#view-root, footer, credits modal; loads vendored Bootstrap and JS modules. -->
+<!DOCTYPE html>
+<!-- AI: Generated with Claude Code — SPA shell for ResumeBuilder. -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ResumeBuilder — build tailored, printable resumes from your profile library." />
+    <title>ResumeBuilder</title>
+
+    <!-- Vendored Bootstrap CSS — no CDN references allowed -->
+    <link rel="stylesheet" href="/vendor/bootstrap.min.css" />
+
+    <!-- Print stylesheet — custom CSS flagged as permitted exception per CLAUDE.md -->
+    <link rel="stylesheet" href="/css/print.css" />
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+</head>
+<body>
+    <!-- Skip navigation link for keyboard and screen reader users (WCAG 2.4.1) -->
+    <a class="visually-hidden-focusable btn btn-primary position-absolute top-0 start-0 m-2" href="#main-content">
+        Skip to main content
+    </a>
+
+    <!-- ============================================================
+         Application header with top-level navigation
+         ============================================================ -->
+    <header class="navbar navbar-expand-md navbar-dark bg-dark" role="banner">
+        <div class="container-fluid">
+            <!-- Brand / logo — clicking navigates to dashboard -->
+            <a class="navbar-brand fw-bold" href="/dashboard" data-spa aria-label="ResumeBuilder home">
+                ResumeBuilder
+            </a>
+
+            <!-- Hamburger toggle for small viewports -->
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#mainNav"
+                aria-controls="mainNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Collapsible nav links -->
+            <nav id="mainNav" class="collapse navbar-collapse" aria-label="Main navigation">
+                <ul class="navbar-nav ms-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard" data-spa>Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile/contact" data-spa>Profile</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ============================================================
+         Main content area — views are injected here by app.js
+         ============================================================ -->
+    <main id="main-content" class="container py-4" tabindex="-1" aria-live="polite" aria-atomic="false">
+        <!-- View modules replace the contents of this element on navigation -->
+        <div id="view-root">
+            <!-- Initial loading state shown before JS kicks in -->
+            <div class="d-flex justify-content-center align-items-center py-5">
+                <div class="spinner-border text-primary" role="status" aria-label="Loading application">
+                    <span class="visually-hidden">Loading…</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ============================================================
+         Footer
+         ============================================================ -->
+    <footer class="bg-light border-top py-3 mt-auto" role="contentinfo">
+        <div class="container-fluid text-center">
+            <small class="text-muted">
+                ResumeBuilder &mdash; CSC3100 Final Project &mdash;
+                <button
+                    type="button"
+                    class="btn btn-link btn-sm p-0 text-muted"
+                    data-bs-toggle="modal"
+                    data-bs-target="#creditsModal"
+                    aria-label="View credits"
+                >
+                    Credits
+                </button>
+            </small>
+        </div>
+    </footer>
+
+    <!-- ============================================================
+         Credits modal
+         ============================================================ -->
+    <div
+        class="modal fade"
+        id="creditsModal"
+        tabindex="-1"
+        aria-labelledby="creditsModalLabel"
+        aria-modal="true"
+        role="dialog"
+    >
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="creditsModalLabel">Credits</h2>
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close credits"
+                    ></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <strong>Bootstrap 5</strong> — MIT License, UI components and responsive styling,
+                            <a href="https://getbootstrap.com" target="_blank" rel="noopener noreferrer">getbootstrap.com</a>
+                        </li>
+                        <li class="mt-2">
+                            <strong>Express</strong> — MIT License, Node.js web server and REST API routing,
+                            <a href="https://expressjs.com" target="_blank" rel="noopener noreferrer">expressjs.com</a>
+                        </li>
+                        <li class="mt-2">
+                            <strong>better-sqlite3</strong> — MIT License, local SQLite database access,
+                            <a href="https://github.com/WiseLibs/better-sqlite3" target="_blank" rel="noopener noreferrer">github.com/WiseLibs/better-sqlite3</a>
+                        </li>
+                        <li class="mt-2">
+                            <strong>dotenv</strong> — BSD-2-Clause License, local environment variable loading,
+                            <a href="https://github.com/motdotla/dotenv" target="_blank" rel="noopener noreferrer">github.com/motdotla/dotenv</a>
+                        </li>
+                        <li class="mt-2">
+                            <strong>Google Generative AI SDK</strong> — Apache-2.0 License, Gemini-powered resume review suggestions,
+                            <a href="https://github.com/google-gemini/generative-ai-js" target="_blank" rel="noopener noreferrer">github.com/google-gemini/generative-ai-js</a>
+                        </li>
+                        <li class="mt-2">
+                            <strong>Swagger UI Express</strong> — MIT License, API documentation UI,
+                            <a href="https://github.com/scottie1984/swagger-ui-express" target="_blank" rel="noopener noreferrer">github.com/scottie1984/swagger-ui-express</a>
+                        </li>
+                        <li class="mt-2">
+                            <strong>AI assistance</strong> — Claude Code (Anthropic). See
+                            <code>docs/ai-usage.md</code> for project AI-use details.
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         Vendored Bootstrap JS bundle (includes Popper)
+         Must load before app.js so Bootstrap plugins are available
+         ============================================================ -->
+    <script src="/vendor/bootstrap.bundle.min.js"></script>
+
+    <!-- App entry point — ES module; loads view modules dynamically -->
+    <script type="module" src="/js/app.js"></script>
+</body>
+</html>
