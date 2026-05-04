@@ -252,4 +252,38 @@ router.put("/:id/selections", (req, res) => {
     }
 });
 
+// AI: Generated with Claude Code — GET /:id/selections endpoint to load saved resume selections for preview/builder.
+// Returns the full selection state for a resume: which sections are toggled, which items are selected, and which bullets.
+router.get("/:id/selections", (req, res) => {
+    const resume_id = req.params.id?.trim();
+    if (!resume_id) {
+        return res.status(400).json({ message: "id is required" });
+    }
+    try {
+        // Verify the resume exists first so we can give a proper 404
+        const arrResume = db.prepare("SELECT id FROM resumes WHERE id = @id").all({ id: resume_id });
+        if (arrResume.length === 0) {
+            return res.status(404).json({ message: "Resume not found" });
+        }
+
+        // Load all three selection tables for this resume
+        const arrSections = db
+            .prepare("SELECT section_type, included, sort_order FROM resume_sections WHERE resume_id = @resume_id ORDER BY sort_order")
+            .all({ resume_id });
+
+        const arrItems = db
+            .prepare("SELECT section_type, item_id, sort_order FROM resume_items WHERE resume_id = @resume_id ORDER BY sort_order")
+            .all({ resume_id });
+
+        const arrBullets = db
+            .prepare("SELECT parent_item_id, bullet_type, bullet_id, sort_order FROM resume_bullets WHERE resume_id = @resume_id ORDER BY sort_order")
+            .all({ resume_id });
+
+        res.status(200).json({ sections: arrSections, items: arrItems, bullets: arrBullets });
+    } catch (err) {
+        console.error("GET /api/resumes/:id/selections error:", err);
+        res.status(500).json({ message: "Failed to retrieve selections" });
+    }
+});
+
 export default router;
