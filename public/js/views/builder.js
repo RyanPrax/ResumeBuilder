@@ -91,13 +91,9 @@ export async function render(objParams) {
         }
         const objResume = arrResume[0];
 
-        // Load existing selections — defaults to empty arrays for a fresh resume
-        let objSelections = { sections: [], items: [], bullets: [] };
-        try {
-            objSelections = await getResumeSelections(intId);
-        } catch {
-            // No selections saved yet — fresh resume, empty state is fine
-        }
+        // Load existing selections — returns saved state, or empty arrays for a fresh resume.
+        // Throws on server/network error so the outer catch can surface the failure.
+        const objSelections = await getResumeSelections(intId);
 
         // Load all profile library tables in parallel for speed
         const [

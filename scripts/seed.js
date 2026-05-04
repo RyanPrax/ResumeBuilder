@@ -45,8 +45,17 @@ const stmtInsertProjBullet = db.prepare(
 const stmtInsertSkillCat = db.prepare(
     "INSERT INTO skill_categories (name, sort_order) VALUES (?, ?)",
 );
+const stmtFindSkillCat = db.prepare(
+    "SELECT id FROM skill_categories WHERE name = ?",
+);
 const stmtInsertSkill = db.prepare(
     "INSERT INTO skills (category_id, name, sort_order) VALUES (?, ?, ?)",
+);
+const stmtFindSkill = db.prepare(
+    "SELECT id FROM skills WHERE category_id = ? AND name = ?",
+);
+const stmtCountSkillsByCat = db.prepare(
+    "SELECT COUNT(*) AS cnt FROM skills WHERE category_id = ?",
 );
 const stmtInsertCert = db.prepare(
     "INSERT INTO certifications (name, issuer, issued_date) VALUES (?, ?, ?)",
@@ -121,20 +130,37 @@ function insertProject(
 }
 
 /**
- * Insert a skill category with its skills.
+ * Find-or-create a skill category and its skills.
+ * If a category with the given name already exists, its ID is reused and any
+ * missing skills are appended — prevents duplicate categories when seed is run
+ * across multiple resumes that share the same category name (e.g. "Languages").
  * @returns {{ categoryId: number, skillIds: number[] }}
  */
 function insertSkillCategory(name, sortOrder, skillNames) {
-    const { lastInsertRowid: categoryId } = stmtInsertSkillCat.run(
-        name,
-        sortOrder,
-    );
-    const skillIds = skillNames.map((skillName, i) => {
+    // Find the category by name, or insert it if it doesn't exist yet
+    const existingCat = stmtFindSkillCat.get(name);
+    let categoryId;
+    if (existingCat) {
+        categoryId = existingCat.id;
+    } else {
+        const { lastInsertRowid } = stmtInsertSkillCat.run(name, sortOrder);
+        categoryId = lastInsertRowid;
+    }
+    // Find each skill within the category, or insert it if missing.
+    // New skills are appended after existing ones to preserve existing sort order.
+    // Fetch the count once, then increment locally to avoid an N+1 query pattern.
+    let intNextSort = stmtCountSkillsByCat.get(categoryId).cnt;
+    const skillIds = skillNames.map((skillName) => {
+        const existingSkill = stmtFindSkill.get(categoryId, skillName);
+        if (existingSkill) {
+            return existingSkill.id;
+        }
         const { lastInsertRowid } = stmtInsertSkill.run(
             categoryId,
             skillName,
-            i,
+            intNextSort,
         );
+        intNextSort += 1;
         return lastInsertRowid;
     });
     return { categoryId, skillIds };

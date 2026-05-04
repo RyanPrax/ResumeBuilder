@@ -55,13 +55,8 @@ export async function render(objParams) {
         }
         const objResume = arrResume[0];
 
-        // Load selections — empty if resume has no saved selections yet
-        let objSelections = { sections: [], items: [], bullets: [] };
-        try {
-            objSelections = await getResumeSelections(intId);
-        } catch {
-            // Fresh resume — no selections saved yet
-        }
+        // Load selections — always returns a valid object; throws on server/network error
+        const objSelections = await getResumeSelections(intId);
 
         // Determine which sections to show.
         // If no sections have been saved yet, show all sections.
@@ -93,11 +88,10 @@ export async function render(objParams) {
         );
 
         // Helper: filter an items array to only the selected entries, in selection order.
-        // If no items have been saved at all (empty selections), return all items.
-        const blnHasItemSelections = objSelections.items.length > 0;
-
+        // A fresh resume (no sections saved yet) shows all items; a saved state (even with
+        // zero items) respects the saved selection.
         const filterItems = (strSectionType, arrAllItems) => {
-            if (!blnHasItemSelections) return arrAllItems;
+            if (!blnHasSavedSections) return arrAllItems;
 
             const setIds = mapSelectedItems[strSectionType];
             if (!setIds || setIds.size === 0) return [];
@@ -168,7 +162,7 @@ export async function render(objParams) {
             arrSelectedJobs.map(async (objJob) => {
                 const arrAllBullets = await getJobBullets(objJob.id);
                 // Keep only the bullets the user selected in the builder
-                const arrBullets = blnHasItemSelections
+                const arrBullets = blnHasSavedSections
                     ? arrAllBullets.filter((b) =>
                           setSelectedBullets.has(`job:${objJob.id}:${b.id}`),
                       )
@@ -180,7 +174,7 @@ export async function render(objParams) {
         const arrProjectsWithBullets = await Promise.all(
             arrSelectedProjects.map(async (objProject) => {
                 const arrAllBullets = await getProjectBullets(objProject.id);
-                const arrBullets = blnHasItemSelections
+                const arrBullets = blnHasSavedSections
                     ? arrAllBullets.filter((b) =>
                           setSelectedBullets.has(
                               `project:${objProject.id}:${b.id}`,
