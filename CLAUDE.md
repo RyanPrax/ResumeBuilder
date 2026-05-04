@@ -81,11 +81,11 @@ Routes are real URL paths driven by the History API. The Express catch-all retur
 - `/dashboard` — saved resumes list + "New resume" + "Edit profile data".
 - `/profile/:tab` — tabbed forms per entity (`contact`, `summary`, `education`, `jobs`, `projects`, `skills`, `certs`, `awards`).
 - `/builder/:id` — resume metadata + checklist tree (sections → items → bullets).
-- `/preview/:id` — digital render; "Print / Save as PDF" triggers `window.print()`.
+- `/preview/:id` — digital render; "Download PDF" triggers server-side Puppeteer export via `/api/pdf/:id`.
 
 In-app links use `<a href="/path" data-spa>`; the router intercepts `data-spa` clicks (skipping new-tab modifiers) and calls `history.pushState`. Programmatic transitions after API calls use `navigate('/builder/' + id)` exported from `app.js`. Back/forward fires `popstate`, which re-runs the dispatcher.
 
-PDF export is **Phase 1: `window.print()` + `@media print` CSS**. If fidelity fails, fall back to vendored `html2pdf.js` or server-side Puppeteer (see `implementation_plan.md`).
+PDF export: server-side Puppeteer (`routes/pdf.js`). Client requests `GET /api/pdf/:id`; server renders the preview page headlessly and streams back a PDF file.
 
 ## AI Integration
 

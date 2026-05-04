@@ -8,7 +8,7 @@ This plan covers the scaffolding, data model, API, SPA structure, AI integration
 
 ---
 
-PDF export **Phase 1: browser `window.print()` + `@media print` CSS.** Re-evaluate if fidelity insufficient.
+PDF export: server-side Puppeteer (`routes/pdf.js`). `GET /api/pdf/:id` renders the preview headlessly and streams a PDF.
 
 AI review trigger: **On-demand "Review" button** per field/section.
 Resume sections: Contact info **required**; Summary, Education, Jobs, Projects, Skills, Certifications, Awards all **optional and dynamic** per resume.
@@ -116,7 +116,7 @@ Single `public/index.html` with skeleton: skip-link, `<header>`, `<main id="view
 1. **Dashboard** — list of saved resumes + "New resume" + "Edit profile data".
 2. **Profile** — tabbed forms for each entity (contact, summary, education, jobs, projects, skills, certs, awards). Each tab has list + add/edit/delete + reorder.
 3. **Builder** — given a resume id: name + target role inputs, then a checklist tree (sections → items → bullets). "Review with AI" buttons attached to long-form text areas.
-4. **Preview** — digital render of the resume using selections. "Print / Save as PDF" button triggers `window.print()`.
+4. **Preview** — digital render of the resume using selections. "Download PDF" button hits `GET /api/pdf/:id` (Puppeteer).
 5. **Credits modal** — list of vendored libraries (Bootstrap, better-sqlite3, dotenv, @google/generative-ai). attribution required.
 
 **Routing:** History API with real URL paths (`/dashboard`, `/profile/jobs`, `/builder/:id`, `/preview/:id`). Single `app.js` intercepts `<a data-spa>` clicks, calls `history.pushState`, listens for `popstate`, and dispatches to view modules. Programmatic transitions after API calls use a `navigate(path)` helper exported from `app.js`. Express adds a catch-all that returns `public/index.html` for any non-`/api` path so refreshes and deep links resolve to the SPA shell. The link-click interceptor honors new-tab modifiers (`Ctrl`/`Cmd`/`Shift`/middle-click, `target="_blank"`) so users keep native browser behaviors.
@@ -147,12 +147,11 @@ public/js/
 
 ---
 
-## PDF export (phase 1)
+## PDF export
 
 - `public/css/print.css` — **custom CSS, flagged**. Targets `@media print`: hides app chrome, sets letter-size page, single-page resume layout, ATS-friendly type sizes, page-break rules.
 - `Preview` view applies a `body.print-preview` class for an on-screen approximation.
-- "Save as PDF" button calls `window.print()`; user picks "Save as PDF" in the browser dialog.
-- Fallback path (only if fidelity fails): vendored `html2pdf.js` or server-side Puppeteer. Re-evaluate after first end-to-end test.
+- `routes/pdf.js` — `GET /api/pdf/:id` launches Puppeteer, navigates to the preview page, and streams the PDF back as `application/pdf` with `Content-Disposition: attachment`.
 
 ---
 
@@ -228,7 +227,7 @@ public/js/
 5. **Resumes API + Dashboard view** — list/create/rename/delete resumes.
 6. **Builder view** — selection tree (sections → items → bullets), persist via `/api/resumes/:id/selections`.
 7. **Preview view** — digital render from saved selections.
-8. **Print stylesheet** — `print.css` for `window.print()` PDF export. *Custom CSS — flagged.*
+8. **Print stylesheet** — `print.css` for `@media print` (Puppeteer PDF export). *Custom CSS — flagged.*
 9. **AI integration** — `/api/ai/review`, `ai-review.js` button + popover.
 10. **PWA** — manifest, service worker, icons, install prompt.
 11. **A11y pass** — semantic markup audit, focus management, Lighthouse run, screenshot.
@@ -259,13 +258,13 @@ End-to-end manual tests:
 2. Profile tab → add a job + 3 bullets → reload → data persists (proves SQLite + API).
 3. New resume → name + target role → builder lets you toggle sections, pick a job, pick 2 of its 3 bullets → save.
 4. Preview view shows the resume with only selected items.
-5. `Ctrl+P` or "Save as PDF" → print preview matches expected layout (single page if content fits).
+5. "Download PDF" → Puppeteer generates PDF matching expected layout (single page if content fits).
 6. Click "Review with AI" on a job bullet (with valid `GEMINI_API_KEY` in `.env`) → suggestions appear.
 7. Without `.env` key → graceful error, app still works.
 8. Lighthouse desktop run → accessibility ≥ 93. Screenshot to `docs/lighthouse.png`.
 9. PWA: Chrome DevTools → Application → manifest valid, SW registered. Install prompt fires. Offline reload of app shell works (API calls fail gracefully).
 10. `git status` confirms `.env` and `db/resume.db` not tracked.
-11. Browser-print sample resume saved as `docs/sample-resume.pdf` for submission.
+11. Puppeteer-generated sample resume saved as `docs/sample-resume.pdf` for submission.
 
 ---
 
