@@ -12,7 +12,7 @@ import {
     getSkills, getSkillCategories,
     getCertifications, getAwards,
 } from "/js/api.js";
-// navigate not used in this view — all transitions use data-spa links
+import { navigate } from "/js/app.js";
 import { showError, showSuccess } from "/js/components/form-helpers.js";
 
 // Human-readable labels for each section type
@@ -242,22 +242,28 @@ function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
     elSaveMetaBtn.textContent = "Save Details";
     elSaveMetaBtn.setAttribute("aria-label", "Save resume name and target role");
 
-    elSaveMetaBtn.addEventListener("click", async () => {
+    async function saveResumeDetails() {
         const strName = elNameInput.value.trim();
         const strRole = elRoleInput.value.trim();
 
         if (!strName) {
             showError(elMetaBody, "Resume name is required.");
             elNameInput.focus();
-            return;
+            return false;
         }
 
+        await putResume(intId, { name: strName, target_role: strRole });
+        return true;
+    }
+
+    elSaveMetaBtn.addEventListener("click", async () => {
         elSaveMetaBtn.disabled = true;
         elSaveMetaBtn.textContent = "Saving…";
 
         try {
-            await putResume(intId, { name: strName, target_role: strRole });
-            showSuccess("Resume details saved.");
+            if (await saveResumeDetails()) {
+                showSuccess("Resume details saved.");
+            }
         } catch (err) {
             showError(elMetaBody, `Failed to save: ${err.message}`);
         } finally {
@@ -357,6 +363,33 @@ function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
     elPreviewBtn.className = "btn btn-success";
     elPreviewBtn.textContent = "Preview Resume →";
 
+    async function saveBeforePreview(objEvent, elTrigger) {
+        objEvent.preventDefault();
+        objEvent.stopPropagation();
+
+        const strOriginalText = elTrigger.textContent;
+        elTrigger.classList.add("disabled");
+        elTrigger.setAttribute("aria-disabled", "true");
+        elTrigger.textContent = "Saving…";
+
+        try {
+            const blnDetailsSaved = await saveResumeDetails();
+            if (!blnDetailsSaved) return;
+
+            await saveAllSelections(intId, elSectionsList);
+            navigate(`/preview/${intId}`);
+        } catch (err) {
+            showError(elRoot, `Failed to save before preview: ${err.message}`);
+        } finally {
+            elTrigger.classList.remove("disabled");
+            elTrigger.removeAttribute("aria-disabled");
+            elTrigger.textContent = strOriginalText;
+        }
+    }
+
+    elPreviewLink.addEventListener("click", (objEvent) => saveBeforePreview(objEvent, elPreviewLink));
+    elPreviewBtn.addEventListener("click", (objEvent) => saveBeforePreview(objEvent, elPreviewBtn));
+
     elActionRow.appendChild(elSaveBtn);
     elActionRow.appendChild(elPreviewBtn);
     elRoot.appendChild(elActionRow);
@@ -398,7 +431,6 @@ function buildSectionRow(strSectionType, blnIncluded, objLibrary, setSelectedIte
     elCheckbox.dataset.sectionType = strSectionType;
     elCheckbox.checked = blnIncluded;
     elCheckbox.setAttribute("aria-label", `Include ${SECTION_LABELS[strSectionType]} section`);
-    elCheckbox.setAttribute("aria-controls", strBodyId);
 
     const elLabel = document.createElement("label");
     elLabel.setAttribute("for", strCheckId);
@@ -419,6 +451,7 @@ function buildSectionRow(strSectionType, blnIncluded, objLibrary, setSelectedIte
     elBody.id = strBodyId;
     elBody.className = `card-body${blnIncluded ? "" : " d-none"}`;
     elBody.dataset.sectionBody = strSectionType;
+    elCheckbox.setAttribute("aria-controls", strBodyId);
 
     // Get the library items that belong to this section
     const arrItems = getLibraryItemsForSection(strSectionType, objLibrary);
@@ -466,6 +499,11 @@ function buildSectionRow(strSectionType, blnIncluded, objLibrary, setSelectedIte
  * @param {Set<string>} setSelectedBullets
  */
 function buildItemChecklist(elBody, strSectionType, arrItems, setSelectedItems, setSelectedBullets) {
+    if (strSectionType === "skills") {
+        buildSkillChecklist(elBody, arrItems, setSelectedItems);
+        return;
+    }
+
     arrItems.forEach((objItem) => {
         const strItemKey  = `${strSectionType}:${objItem.id}`;
         const blnSelected = setSelectedItems.has(strItemKey);
@@ -562,6 +600,100 @@ function buildItemChecklist(elBody, strSectionType, arrItems, setSelectedItems, 
 
         elBody.appendChild(elItemRow);
     });
+}
+
+/**
+ * Render skills with unchecked items tucked into a collapsed list by default.
+ *
+ * @param {HTMLElement} elBody
+ * @param {object[]} arrSkills
+ * @param {Set<string>} setSelectedItems
+ */
+function buildSkillChecklist(elBody, arrSkills, setSelectedItems) {
+    const arrSelected = [];
+    const arrUnselected = [];
+
+    arrSkills.forEach((objSkill) => {
+        const strItemKey = `skills:${objSkill.id}`;
+        if (setSelectedItems.has(strItemKey)) {
+            arrSelected.push(objSkill);
+        } else {
+            arrUnselected.push(objSkill);
+        }
+    });
+
+    if (arrSelected.length > 0) {
+        const elSelectedGroup = document.createElement("div");
+        elSelectedGroup.className = "mb-3";
+
+        const elSelectedTitle = document.createElement("h3");
+        elSelectedTitle.className = "h6 mb-2";
+        elSelectedTitle.textContent = "Selected skills";
+        elSelectedGroup.appendChild(elSelectedTitle);
+
+        arrSelected.forEach((objSkill) => {
+            elSelectedGroup.appendChild(buildSkillCheckbox(objSkill, true));
+        });
+
+        elBody.appendChild(elSelectedGroup);
+    }
+
+    if (arrUnselected.length > 0) {
+        const elDetails = document.createElement("details");
+        elDetails.className = "mt-2";
+
+        const elSummary = document.createElement("summary");
+        elSummary.className = "fw-semibold small";
+        elSummary.textContent = `Unselected skills (${arrUnselected.length})`;
+        elDetails.appendChild(elSummary);
+
+        const elUnselectedGroup = document.createElement("div");
+        elUnselectedGroup.className = "mt-2";
+
+        arrUnselected.forEach((objSkill) => {
+            elUnselectedGroup.appendChild(buildSkillCheckbox(objSkill, false));
+        });
+
+        elDetails.appendChild(elUnselectedGroup);
+        elBody.appendChild(elDetails);
+    }
+}
+
+/**
+ * Build one skill checkbox row for the builder checklist.
+ *
+ * @param {object} objSkill
+ * @param {boolean} blnSelected
+ * @returns {HTMLDivElement}
+ */
+function buildSkillCheckbox(objSkill, blnSelected) {
+    const elItemRow = document.createElement("div");
+    elItemRow.className = "mb-2";
+
+    const elItemCheck = document.createElement("div");
+    elItemCheck.className = "form-check";
+
+    const strItemId = `item-skills-${objSkill.id}`;
+
+    const elCheckbox = document.createElement("input");
+    elCheckbox.type = "checkbox";
+    elCheckbox.id = strItemId;
+    elCheckbox.className = "form-check-input js-item-checkbox";
+    elCheckbox.dataset.sectionType = "skills";
+    elCheckbox.dataset.itemId = String(objSkill.id);
+    elCheckbox.checked = blnSelected;
+    elCheckbox.setAttribute("aria-label", `Include: ${objSkill.name}`);
+
+    const elLabel = document.createElement("label");
+    elLabel.setAttribute("for", strItemId);
+    elLabel.className = "form-check-label";
+    elLabel.textContent = objSkill.name;
+
+    elItemCheck.appendChild(elCheckbox);
+    elItemCheck.appendChild(elLabel);
+    elItemRow.appendChild(elItemCheck);
+
+    return elItemRow;
 }
 
 // ============================================================

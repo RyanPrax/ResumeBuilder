@@ -219,7 +219,11 @@ function renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, o
 
     // ---- Action bar (hidden when printing) ----
     const elActionBar = document.createElement("div");
-    elActionBar.className = "d-flex justify-content-between align-items-center mb-3 no-print flex-wrap gap-2";
+    elActionBar.className = "resume-preview-actions d-flex justify-content-between align-items-center mb-3 no-print flex-wrap gap-2";
+
+    const elResumeTitle = document.createElement("h1");
+    elResumeTitle.className = "h3 mb-0";
+    elResumeTitle.textContent = objResume.name || "Resume Preview";
 
     const elBackLink = document.createElement("a");
     elBackLink.href = `/builder/${intId}`;
@@ -241,9 +245,10 @@ function renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, o
 
     const elBtnGroup = document.createElement("div");
     elBtnGroup.className = "d-flex gap-2";
+    elBtnGroup.appendChild(elBackLink);
     elBtnGroup.appendChild(elDownloadLink);
 
-    elActionBar.appendChild(elBackLink);
+    elActionBar.appendChild(elResumeTitle);
     elActionBar.appendChild(elBtnGroup);
     elRoot.appendChild(elActionBar);
 
@@ -331,12 +336,12 @@ function renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, o
 
             // "Page N ends" badge sits on the left edge of the paper.
             const elEndBadge = document.createElement("span");
-            elEndBadge.className = "badge bg-secondary opacity-75 ms-1";
+            elEndBadge.className = "badge bg-secondary ms-1";
             elEndBadge.textContent = `↑ Page ${i}`;
 
             // "Page N+1 starts" badge sits on the right edge.
             const elStartBadge = document.createElement("span");
-            elStartBadge.className = "badge bg-secondary opacity-75 me-1";
+            elStartBadge.className = "badge bg-secondary me-1";
             elStartBadge.textContent = `Page ${i + 1} ↓`;
 
             elOverlay.appendChild(elEndBadge);

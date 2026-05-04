@@ -32,6 +32,12 @@
         padding: 2rem 0;
     }
 
+    body.print-preview .resume-preview-actions {
+        width: min(8.5in, calc(100vw - 2rem));
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     /* Each page renders as a letter-size paper sheet on the grey background.
        Keep height flexible until JS pagination splits content into separate
        pages; otherwise an unfinished paginator clips multi-page resumes. */
