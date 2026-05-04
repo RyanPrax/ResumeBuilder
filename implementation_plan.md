@@ -21,7 +21,7 @@ Gemini key storage **`.env` only.**
 ## Important things to note
 
 - assignment requires UI for user-supplied Gemini key.
-- accessability measured by Lighthouse a11y ≥ 93, manual UX pass, and consistent Bootstrap utility usage.
+- accessability measured by Lighthouse a11y ≥ 93, manual UX pass, and consistent Bootstrap utility usage plus flagged theme CSS.
 - **App name + iconography**: finalize before submission; placeholder used during dev.
 - **"Special instructions"**: produced as part of README in final submission step.
 
@@ -149,6 +149,7 @@ public/js/
 
 ## PDF export
 
+- `public/css/app.css` — **custom CSS, flagged**. Defines accessible app theme tokens, Bootstrap color overrides, focus states, cards, forms, nav, and modal polish.
 - `public/css/print.css` — **custom CSS, flagged**. Targets `@media print`: hides app chrome, sets letter-size page, single-page resume layout, ATS-friendly type sizes, page-break rules.
 - `Preview` view applies a `body.print-preview` class for an on-screen approximation.
 - `routes/pdf.js` — `GET /api/pdf/:id` launches Puppeteer, navigates to the preview page, and streams the PDF back as `application/pdf` with `Content-Disposition: attachment`.
@@ -170,7 +171,7 @@ public/js/
 - Skip-link to `#view-root`.
 - All form inputs labeled; required fields marked with `aria-required`.
 - Modals trap focus; ESC closes.
-- Color contrast checked against Bootstrap default tokens; override only if needed (flagged custom CSS).
+- Color contrast checked against Bootstrap default tokens and app theme tokens. Primary color is `#9AC68F`; interactive states use darker green for WCAG contrast. Secondary surface is accessible cream `#FFF8E7`.
 - `prefers-reduced-motion` respected.
 - Keyboard navigability for the builder checklist tree.
 - Lighthouse run after each major view ships; screenshot at end.
@@ -209,7 +210,8 @@ public/js/
     ├── icons/
     ├── vendor/                   bootstrap CSS+JS (no CDN)
     ├── css/
-    │   └── print.css             custom CSS, flagged
+    │   ├── app.css               app theme CSS, flagged
+    │   └── print.css             print/PDF CSS, flagged
     └── js/
         ├── app.js  api.js  pwa.js
         ├── views/                dashboard.js  profile.js  builder.js  preview.js
@@ -246,6 +248,7 @@ public/js/
 - `public/index.html` — SPA shell, vendored CSS/JS links, manifest link, SW registration.
 - `public/js/app.js` — History API router (`pushState` + `popstate` + `<a data-spa>` click interceptor) + view dispatch + exported `navigate(path)` helper.
 - `public/js/views/*.js` — four views.
+- `public/css/app.css` — app theme rules (flagged custom CSS).
 - `public/css/print.css` — print rules (flagged custom CSS).
 - `public/manifest.webmanifest`, `public/service-worker.js`.
 

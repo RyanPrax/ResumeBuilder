@@ -10,6 +10,9 @@
     <!-- Vendored Bootstrap CSS — no CDN references allowed -->
     <link rel="stylesheet" href="/vendor/bootstrap.min.css" />
 
+    <!-- App theme stylesheet — custom CSS flagged in implementation_plan.md -->
+    <link rel="stylesheet" href="/css/app.css" />
+
     <!-- Print stylesheet — custom CSS flagged as permitted exception per CLAUDE.md -->
     <link rel="stylesheet" href="/css/print.css" />
 
@@ -25,7 +28,7 @@
     <!-- ============================================================
          Application header with top-level navigation
          ============================================================ -->
-    <header class="navbar navbar-expand-md navbar-dark bg-dark" role="banner">
+    <header class="navbar navbar-expand-md navbar-dark bg-dark sticky-top" role="banner">
         <div class="container-fluid">
             <!-- Brand / logo — clicking navigates to dashboard -->
             <a class="navbar-brand fw-bold" href="/dashboard" data-spa aria-label="ResumeBuilder home">

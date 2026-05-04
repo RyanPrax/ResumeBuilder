@@ -71,14 +71,21 @@ function matchRoute(strPathname) {
 // cleanup() function (if provided) before rendering a new view.
 let objCurrentView = null;
 
+// Let the SPA control scroll position on route changes so deep pages do not
+// inherit a previous view's scroll offset and hide the header automatically.
+if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+}
+
 /**
  * Resolve and render the view for the given pathname.
  * Dynamically imports the view module, calls its render(params) function,
  * and swaps the content of #view-root.
  *
  * @param {string} strPathname
+ * @param {boolean} blnMoveFocus - true for SPA navigation after the initial load
  */
-async function renderView(strPathname) {
+async function renderView(strPathname, blnMoveFocus = false) {
     const elRoot = document.getElementById("view-root");
 
     // Special-case: redirect bare "/" to "/dashboard"
@@ -133,10 +140,19 @@ async function renderView(strPathname) {
         elRoot.innerHTML = "";
         await objModule.render(objMatch.params);
 
-        // Move focus to #main-content for screen reader announcement
-        const elMain = document.getElementById("main-content");
-        if (elMain) {
-            elMain.focus();
+        if (blnMoveFocus) {
+            window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        }
+
+        // Move focus after in-app navigation so screen readers announce the new view.
+        // Do not do this on the initial page load: browsers can paint a visible
+        // focus outline after refresh even though the user did not navigate inside
+        // the SPA.
+        if (blnMoveFocus) {
+            const elMain = document.getElementById("main-content");
+            if (elMain) {
+                elMain.focus({ preventScroll: true });
+            }
         }
     } catch (err) {
         console.error("Failed to load or render view:", err);
@@ -162,7 +178,7 @@ async function renderView(strPathname) {
  */
 export function navigate(strPath) {
     history.pushState(null, "", strPath);
-    renderView(strPath);
+    renderView(strPath, true);
 }
 
 // ============================================================
@@ -204,7 +220,7 @@ document.addEventListener("click", (objEvent) => {
 // ============================================================
 
 window.addEventListener("popstate", () => {
-    renderView(window.location.pathname);
+    renderView(window.location.pathname, true);
 });
 
 // ============================================================

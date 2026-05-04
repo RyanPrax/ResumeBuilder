@@ -25,7 +25,7 @@ Project-specific agents live in `.claude/agents/`. Claude Code loads them automa
 
 Stack (locked by assignment):
 - Frontend: vanilla HTML/CSS/JS, **no React or other frameworks**. SPA — single `public/index.html`, History API routing (`pushState` + `popstate`), views show/hide via DOM swaps.
-- Styling: Bootstrap utility classes only. Custom CSS limited to `public/css/print.css` (print layout) and explicitly flagged in `implementation_plan.md`.
+- Styling: Bootstrap utility classes plus explicitly flagged CSS in `public/css/app.css` (theme) and `public/css/print.css` (print layout). Both are listed in `implementation_plan.md`.
 - Backend: Node.js + Express **RESTful** APIs. **No MVC, no SSR.**
 - Database: SQLite via `better-sqlite3`.
 - AI: Google Gemini via `@google/generative-ai`.
@@ -66,6 +66,7 @@ rm db/resume.db && npm start
 - **public/js/components/** — `form-helpers.js` (form binding utilities), `ai-review.js` ("Review with AI" button + suggestion popover).
 - **public/js/api.js** — Thin `fetch` helpers for the `/api/*` surface.
 - **public/js/pwa.js** — Service worker registration + install-prompt handling.
+- **public/css/app.css** — app theme overrides. **Custom CSS — flagged.** Defines the accessible primary color `#9AC68F`, cream secondary surface, focus states, and Bootstrap token overrides.
 - **public/css/print.css** — `@media print` rules for the resume layout. **Custom CSS — flagged.** Hides app chrome, sets letter-size page, ATS-friendly type, page-break rules.
 - **public/vendor/** — Vendored Bootstrap CSS+JS and any other third-party libraries. No CDN references anywhere in `index.html`.
 - **public/manifest.webmanifest**, **public/service-worker.js** — PWA shell. Caches app shell on install; network-first for `/api/*`. Navigation requests (any non-`/api` path) fall back to cached `index.html` when offline so deep links keep working without a network round-trip.
@@ -162,7 +163,7 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 
 ## Code Style
 
-- **Bootstrap utilities only.** Do not add custom CSS rules. The single permitted exception is `public/css/print.css` (print layout). If a custom rule is unavoidable elsewhere, raise it explicitly — it must be added to the flagged-CSS list in `implementation_plan.md`.
+- **Bootstrap utilities first.** Custom CSS is limited to explicitly flagged files: `public/css/app.css` for the app theme and `public/css/print.css` for print/PDF layout. If another custom rule is unavoidable elsewhere, raise it explicitly — it must be added to the flagged-CSS list in `implementation_plan.md`.
 - Vanilla JS, ES modules. **No React, Vue, jQuery, or other frameworks.**
 - 4-space indentation, semicolons, double quotes (enforced by Prettier via `npm run fmt`).
 - Express routes return JSON. No server-side rendering, no MVC layering.
