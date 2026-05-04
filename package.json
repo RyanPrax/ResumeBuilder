@@ -8,7 +8,9 @@
         "start": "node server.js",
         "test": "node --test",
         "lint": "eslint .",
-        "fmt": "prettier --write \"**/*.js\""
+        "fmt": "prettier --write \"**/*.js\"",
+        "clean": "node scripts/clean-db.js",
+        "seed": "node scripts/seed.js"
     },
     "dependencies": {
         "@google/generative-ai": "^0.24.1",
