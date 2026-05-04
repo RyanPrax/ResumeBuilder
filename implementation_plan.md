@@ -4,7 +4,7 @@
 
 CSC3100 final assignment: build a local SPA that helps students draft tailored resumes. Users persist a library of jobs/skills/certs/awards/etc., then pick which items go on a given resume targeted at a specific role. Gemini AI reviews user-entered prose. Output is a digital view + printable PDF. Stack is locked by the assignment doc (`CSC3100Final-ResumeBuilder.md`)
 
-This plan covers the scaffolding, data model, API, SPA structure, AI integration, PDF export, PWA wrapper, and accessibility pass needed to satisfy the rubric.
+This plan covers the scaffolding, data model, API, SPA structure, AI integration, PDF export, and accessibility pass needed to satisfy the rubric.
 
 ---
 
@@ -126,7 +126,6 @@ Single `public/index.html` with skeleton: skip-link, `<header>`, `<main id="view
 public/js/
   app.js              router + bootstrap
   api.js              thin fetch helpers
-  pwa.js              service worker register + install prompt
   views/
     dashboard.js
     profile.js
@@ -153,15 +152,6 @@ public/js/
 - `public/css/print.css` — **custom CSS, flagged**. Targets `@media print`: hides app chrome, sets letter-size page, single-page resume layout, ATS-friendly type sizes, page-break rules.
 - `Preview` view applies a `body.print-preview` class for an on-screen approximation.
 - `routes/pdf.js` — `GET /api/pdf/:id` launches Puppeteer, navigates to the preview page, and streams the PDF back as `application/pdf` with `Content-Disposition: attachment`.
-
----
-
-## PWA
-
-- `public/manifest.webmanifest` — name, short_name, icons (192, 512, maskable), theme_color, background_color, display: standalone, start_url `/`.
-- `public/service-worker.js` — cache app shell (`index.html`, vendored CSS/JS, view modules, icons) on install; network-first for `/api/*`. Navigation requests (any non-`/api` path) fall back to cached `index.html` when offline so History API deep links (e.g. `/builder/5`) keep working without a network round-trip. Versioned cache name for upgrades.
-- `pwa.js` registers SW, surfaces install prompt via `beforeinstallprompt`.
-- Icons: vendored PNGs in `public/icons/` plus `favicon.ico` and `apple-touch-icon.png`.
 
 ---
 
@@ -204,8 +194,6 @@ public/js/
 │   ├── skills.js   certifications.js  awards.js  resumes.js  ai.js
 └── public/
     ├── index.html                SPA shell
-    ├── manifest.webmanifest
-    ├── service-worker.js
     ├── favicon.ico
     ├── icons/
     ├── vendor/                   bootstrap CSS+JS (no CDN)
@@ -213,7 +201,7 @@ public/js/
     │   ├── app.css               app theme CSS, flagged
     │   └── print.css             print/PDF CSS, flagged
     └── js/
-        ├── app.js  api.js  pwa.js
+        ├── app.js  api.js
         ├── views/                dashboard.js  profile.js  builder.js  preview.js
         └── components/           form-helpers.js  ai-review.js
 ```
@@ -231,11 +219,10 @@ public/js/
 7. **Preview view** — digital render from saved selections.
 8. **Print stylesheet** — `print.css` for `@media print` (Puppeteer PDF export). *Custom CSS — flagged.*
 9. **AI integration** — `/api/ai/review`, `ai-review.js` button + popover.
-10. **PWA** — manifest, service worker, icons, install prompt.
-11. **A11y pass** — semantic markup audit, focus management, Lighthouse run, screenshot.
-12. **Branding** — final name + favicon + icons, replace placeholder.
-13. **Credits modal** — attribution required
-14. **Submission package** — README, AI usage doc, sample PDF, Lighthouse screenshot, sharing statement, dev image.
+10. **A11y pass** — semantic markup audit, focus management, Lighthouse run, screenshot.
+11. **Branding** — final name + favicon + icons, replace placeholder.
+12. **Credits modal** — attribution required
+13. **Submission package** — README, AI usage doc, sample PDF, Lighthouse screenshot, sharing statement, dev image.
 
 ---
 
@@ -245,13 +232,11 @@ public/js/
 - `db/schema.sql` — schema above.
 - `lib/db.js`, `lib/gemini.js`.
 - `routes/*.js` — one router per resource.
-- `public/index.html` — SPA shell, vendored CSS/JS links, manifest link, SW registration.
+- `public/index.html` — SPA shell, vendored CSS/JS links.
 - `public/js/app.js` — History API router (`pushState` + `popstate` + `<a data-spa>` click interceptor) + view dispatch + exported `navigate(path)` helper.
 - `public/js/views/*.js` — four views.
 - `public/css/app.css` — app theme rules (flagged custom CSS).
 - `public/css/print.css` — print rules (flagged custom CSS).
-- `public/manifest.webmanifest`, `public/service-worker.js`.
-
 ---
 
 ## Verification
@@ -265,9 +250,8 @@ End-to-end manual tests:
 6. Click "Review with AI" on a job bullet (with valid `GEMINI_API_KEY` in `.env`) → suggestions appear.
 7. Without `.env` key → graceful error, app still works.
 8. Lighthouse desktop run → accessibility ≥ 93. Screenshot to `docs/lighthouse.png`.
-9. PWA: Chrome DevTools → Application → manifest valid, SW registered. Install prompt fires. Offline reload of app shell works (API calls fail gracefully).
-10. `git status` confirms `.env` and `db/resume.db` not tracked.
-11. Puppeteer-generated sample resume saved as `docs/sample-resume.pdf` for submission.
+9. `git status` confirms `.env` and `db/resume.db` not tracked.
+10. Puppeteer-generated sample resume saved as `docs/sample-resume.pdf` for submission.
 
 ---
 
