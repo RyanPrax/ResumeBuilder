@@ -3,14 +3,9 @@
 // Run with: npm run seed
 // Safe to run multiple times — each resume is skipped if it already exists by name.
 
-import Database from "better-sqlite3";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const db = new Database(join(__dirname, "..", "db", "resume.db"));
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
+// Import the shared DB singleton — this runs the schema migration so all
+// tables exist before the prepared statements below are compiled.
+import db from "../lib/db.js";
 
 // ============================================================
 // Prepared statements
