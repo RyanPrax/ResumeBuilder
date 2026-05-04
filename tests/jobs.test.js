@@ -27,7 +27,9 @@ after(async () => {
     await new Promise((resolve) => server.close(resolve));
     // Delete bullet first (FK); then delete job. Both are no-ops if already deleted by tests.
     if (intTestBulletId !== null) {
-        db.prepare("DELETE FROM job_bullets WHERE id = @id").run({ id: intTestBulletId });
+        db.prepare("DELETE FROM job_bullets WHERE id = @id").run({
+            id: intTestBulletId,
+        });
     }
     if (intTestJobId !== null) {
         db.prepare("DELETE FROM jobs WHERE id = @id").run({ id: intTestJobId });
@@ -134,7 +136,11 @@ test("PUT /api/jobs/:id — returns 200 with valid body", async () => {
     const res = await fetch(`${strBaseUrl}/${intTestJobId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ company: "Updated Co", title: "Senior Engineer", is_current: 0 }),
+        body: JSON.stringify({
+            company: "Updated Co",
+            title: "Senior Engineer",
+            is_current: 0,
+        }),
     });
     assert.equal(res.status, 200);
 });
@@ -172,7 +178,10 @@ test("POST /api/jobs/:id/bullets — returns 201 and new id with valid body", as
     const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: "Delivered a key feature on time.", sort_order: 0 }),
+        body: JSON.stringify({
+            text: "Delivered a key feature on time.",
+            sort_order: 0,
+        }),
     });
     assert.equal(res.status, 201);
     const objBody = await res.json();
@@ -190,97 +199,197 @@ test("PUT /api/jobs/:id/bullets/:bid — returns 404 for unknown bullet id", asy
 });
 
 test("PUT /api/jobs/:id/bullets/:bid — returns 400 and preserves text when text is missing", async () => {
-    const objBefore = db.prepare("SELECT text FROM job_bullets WHERE id = @id").get({ id: intTestBulletId });
-    const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sort_order: 3 }),
-    });
+    const objBefore = db
+        .prepare("SELECT text FROM job_bullets WHERE id = @id")
+        .get({ id: intTestBulletId });
+    const res = await fetch(
+        `${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`,
+        {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sort_order: 3 }),
+        },
+    );
     assert.equal(res.status, 400);
     const objBody = await res.json();
     assert.match(objBody.message, /text/i);
 
-    const objAfter = db.prepare("SELECT text FROM job_bullets WHERE id = @id").get({ id: intTestBulletId });
+    const objAfter = db
+        .prepare("SELECT text FROM job_bullets WHERE id = @id")
+        .get({ id: intTestBulletId });
     assert.equal(objAfter.text, objBefore.text);
 });
 
 test("PUT /api/jobs/:id/bullets/:bid — returns 400 when body is empty", async () => {
-    const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`, { method: "PUT" });
+    const res = await fetch(
+        `${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`,
+        { method: "PUT" },
+    );
     assert.equal(res.status, 400);
     const objBody = await res.json();
     assert.match(objBody.message, /text/i);
 });
 
 test("PUT /api/jobs/:id/bullets/:bid — returns 400 when text is blank", async () => {
-    const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: "   ", sort_order: 3 }),
-    });
+    const res = await fetch(
+        `${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`,
+        {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: "   ", sort_order: 3 }),
+        },
+    );
     assert.equal(res.status, 400);
     const objBody = await res.json();
     assert.match(objBody.message, /text/i);
 });
 
 test("PUT /api/jobs/:id/bullets/:bid — returns 200 with valid body", async () => {
-    const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: "Updated bullet text.", sort_order: 1 }),
-    });
+    const res = await fetch(
+        `${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`,
+        {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                text: "Updated bullet text.",
+                sort_order: 1,
+            }),
+        },
+    );
     assert.equal(res.status, 200);
 });
 
 test("DELETE /api/jobs/:id/bullets/:bid — returns 404 for unknown bullet id", async () => {
-    const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets/999999`, { method: "DELETE" });
+    const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets/999999`, {
+        method: "DELETE",
+    });
     assert.equal(res.status, 404);
 });
 
 test("DELETE /api/jobs/:id/bullets/:bid — returns 200 and removes the bullet", async () => {
-    const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`, { method: "DELETE" });
+    const res = await fetch(
+        `${strBaseUrl}/${intTestJobId}/bullets/${intTestBulletId}`,
+        { method: "DELETE" },
+    );
     assert.equal(res.status, 200);
     intTestBulletId = null;
 });
 
 test("DELETE /api/jobs/:id/bullets/:bid — removes orphaned resume_bullets rows", async () => {
     // Insert a fresh bullet on the test job and a resume selection pointing at it
-    const objBullet = db.prepare("INSERT INTO job_bullets (job_id, text, sort_order) VALUES (@job_id, @text, @sort_order)").run({ job_id: intTestJobId, text: "Orphan test bullet", sort_order: 99 });
+    const objBullet = db
+        .prepare(
+            "INSERT INTO job_bullets (job_id, text, sort_order) VALUES (@job_id, @text, @sort_order)",
+        )
+        .run({
+            job_id: intTestJobId,
+            text: "Orphan test bullet",
+            sort_order: 99,
+        });
     const intBulletId = objBullet.lastInsertRowid;
-    const objResume = db.prepare("INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)").run({ name: "Orphan Test Resume", target_role: "" });
+    const objResume = db
+        .prepare(
+            "INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)",
+        )
+        .run({ name: "Orphan Test Resume", target_role: "" });
     const intResumeId = objResume.lastInsertRowid;
-    db.prepare("INSERT INTO resume_bullets (resume_id, parent_item_id, bullet_type, bullet_id, sort_order) VALUES (@resume_id, @parent_item_id, @bullet_type, @bullet_id, @sort_order)").run({ resume_id: intResumeId, parent_item_id: intTestJobId, bullet_type: "job", bullet_id: intBulletId, sort_order: 0 });
+    db.prepare(
+        "INSERT INTO resume_bullets (resume_id, parent_item_id, bullet_type, bullet_id, sort_order) VALUES (@resume_id, @parent_item_id, @bullet_type, @bullet_id, @sort_order)",
+    ).run({
+        resume_id: intResumeId,
+        parent_item_id: intTestJobId,
+        bullet_type: "job",
+        bullet_id: intBulletId,
+        sort_order: 0,
+    });
 
-    const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets/${intBulletId}`, { method: "DELETE" });
+    const res = await fetch(
+        `${strBaseUrl}/${intTestJobId}/bullets/${intBulletId}`,
+        { method: "DELETE" },
+    );
     assert.equal(res.status, 200);
 
-    const arrOrphans = db.prepare("SELECT id FROM resume_bullets WHERE bullet_type = 'job' AND bullet_id = @bullet_id").all({ bullet_id: intBulletId });
-    assert.equal(arrOrphans.length, 0, "resume_bullets row must be removed when job bullet is deleted");
+    const arrOrphans = db
+        .prepare(
+            "SELECT id FROM resume_bullets WHERE bullet_type = 'job' AND bullet_id = @bullet_id",
+        )
+        .all({ bullet_id: intBulletId });
+    assert.equal(
+        arrOrphans.length,
+        0,
+        "resume_bullets row must be removed when job bullet is deleted",
+    );
 
     db.prepare("DELETE FROM resumes WHERE id = @id").run({ id: intResumeId });
 });
 
 test("DELETE /api/jobs/:id/bullets/:bid — preserves resume_bullets rows when job id does not match bullet", async (t) => {
-    const objOtherJob = db.prepare("INSERT INTO jobs (company, title) VALUES (@company, @title)").run({ company: "Other Test Co", title: "Engineer" });
+    const objOtherJob = db
+        .prepare("INSERT INTO jobs (company, title) VALUES (@company, @title)")
+        .run({ company: "Other Test Co", title: "Engineer" });
     const intOtherJobId = objOtherJob.lastInsertRowid;
-    const objBullet = db.prepare("INSERT INTO job_bullets (job_id, text, sort_order) VALUES (@job_id, @text, @sort_order)").run({ job_id: intOtherJobId, text: "Wrong parent test bullet", sort_order: 0 });
+    const objBullet = db
+        .prepare(
+            "INSERT INTO job_bullets (job_id, text, sort_order) VALUES (@job_id, @text, @sort_order)",
+        )
+        .run({
+            job_id: intOtherJobId,
+            text: "Wrong parent test bullet",
+            sort_order: 0,
+        });
     const intBulletId = objBullet.lastInsertRowid;
-    const objResume = db.prepare("INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)").run({ name: "Wrong Parent Test Resume", target_role: "" });
+    const objResume = db
+        .prepare(
+            "INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)",
+        )
+        .run({ name: "Wrong Parent Test Resume", target_role: "" });
     const intResumeId = objResume.lastInsertRowid;
-    db.prepare("INSERT INTO resume_bullets (resume_id, parent_item_id, bullet_type, bullet_id, sort_order) VALUES (@resume_id, @parent_item_id, @bullet_type, @bullet_id, @sort_order)").run({ resume_id: intResumeId, parent_item_id: intOtherJobId, bullet_type: "job", bullet_id: intBulletId, sort_order: 0 });
-
-    t.after(() => {
-        db.prepare("DELETE FROM resumes WHERE id = @id").run({ id: intResumeId });
-        db.prepare("DELETE FROM job_bullets WHERE id = @id").run({ id: intBulletId });
-        db.prepare("DELETE FROM jobs WHERE id = @id").run({ id: intOtherJobId });
+    db.prepare(
+        "INSERT INTO resume_bullets (resume_id, parent_item_id, bullet_type, bullet_id, sort_order) VALUES (@resume_id, @parent_item_id, @bullet_type, @bullet_id, @sort_order)",
+    ).run({
+        resume_id: intResumeId,
+        parent_item_id: intOtherJobId,
+        bullet_type: "job",
+        bullet_id: intBulletId,
+        sort_order: 0,
     });
 
-    const res = await fetch(`${strBaseUrl}/${intTestJobId}/bullets/${intBulletId}`, { method: "DELETE" });
+    t.after(() => {
+        db.prepare("DELETE FROM resumes WHERE id = @id").run({
+            id: intResumeId,
+        });
+        db.prepare("DELETE FROM job_bullets WHERE id = @id").run({
+            id: intBulletId,
+        });
+        db.prepare("DELETE FROM jobs WHERE id = @id").run({
+            id: intOtherJobId,
+        });
+    });
+
+    const res = await fetch(
+        `${strBaseUrl}/${intTestJobId}/bullets/${intBulletId}`,
+        { method: "DELETE" },
+    );
     assert.equal(res.status, 404);
 
-    const objBulletAfter = db.prepare("SELECT id FROM job_bullets WHERE id = @id AND job_id = @job_id").get({ id: intBulletId, job_id: intOtherJobId });
-    assert.ok(objBulletAfter, "job bullet must not be removed when the job id does not match");
-    const objSelectionAfter = db.prepare("SELECT id FROM resume_bullets WHERE bullet_type = 'job' AND bullet_id = @bullet_id").get({ bullet_id: intBulletId });
-    assert.ok(objSelectionAfter, "resume_bullets row must not be removed when the job id does not match");
+    const objBulletAfter = db
+        .prepare(
+            "SELECT id FROM job_bullets WHERE id = @id AND job_id = @job_id",
+        )
+        .get({ id: intBulletId, job_id: intOtherJobId });
+    assert.ok(
+        objBulletAfter,
+        "job bullet must not be removed when the job id does not match",
+    );
+    const objSelectionAfter = db
+        .prepare(
+            "SELECT id FROM resume_bullets WHERE bullet_type = 'job' AND bullet_id = @bullet_id",
+        )
+        .get({ bullet_id: intBulletId });
+    assert.ok(
+        objSelectionAfter,
+        "resume_bullets row must not be removed when the job id does not match",
+    );
 });
 
 // ── Job DELETE ────────────────────────────────────────────────────────────
@@ -291,7 +400,9 @@ test("DELETE /api/jobs/:id — returns 404 for unknown id", async () => {
 });
 
 test("DELETE /api/jobs/:id — returns 200 and removes the job", async () => {
-    const res = await fetch(`${strBaseUrl}/${intTestJobId}`, { method: "DELETE" });
+    const res = await fetch(`${strBaseUrl}/${intTestJobId}`, {
+        method: "DELETE",
+    });
     assert.equal(res.status, 200);
     intTestJobId = null;
 });

@@ -4,44 +4,57 @@
 // via PUT /api/resumes/:id/selections.
 
 import {
-    getResume, putResume,
-    getResumeSelections, putResumeSelections,
-    getSummaries, getEducations,
-    getJobs, getJobBullets,
-    getProjects, getProjectBullets,
-    getSkills, getSkillCategories,
-    getCertifications, getAwards,
+    getResume,
+    putResume,
+    getResumeSelections,
+    putResumeSelections,
+    getSummaries,
+    getEducations,
+    getJobs,
+    getJobBullets,
+    getProjects,
+    getProjectBullets,
+    getSkills,
+    getSkillCategories,
+    getCertifications,
+    getAwards,
 } from "/js/api.js";
 import { navigate } from "/js/app.js";
 import { showError, showSuccess } from "/js/components/form-helpers.js";
 
 // Human-readable labels for each section type
 const SECTION_LABELS = {
-    contact:        "Contact Information",
-    summary:        "Professional Summary",
-    education:      "Education",
-    jobs:           "Work Experience",
-    projects:       "Projects",
-    skills:         "Skills",
+    contact: "Contact Information",
+    summary: "Professional Summary",
+    education: "Education",
+    jobs: "Work Experience",
+    projects: "Projects",
+    skills: "Skills",
     certifications: "Certifications",
-    awards:         "Awards & Honors",
+    awards: "Awards & Honors",
 };
 
 // Fixed display order for sections — matches the profile tab order
 const SECTION_ORDER = [
-    "contact", "summary", "education", "jobs",
-    "projects", "skills", "certifications", "awards",
+    "contact",
+    "summary",
+    "education",
+    "jobs",
+    "projects",
+    "skills",
+    "certifications",
+    "awards",
 ];
 
 // Maps section_type to the profile tab URL used in empty-state links
 const SECTION_PROFILE_TAB = {
-    summary:        "summary",
-    education:      "education",
-    jobs:           "jobs",
-    projects:       "projects",
-    skills:         "skills",
+    summary: "summary",
+    education: "education",
+    jobs: "jobs",
+    projects: "projects",
+    skills: "skills",
     certifications: "certs",
-    awards:         "awards",
+    awards: "awards",
 };
 
 // ============================================================
@@ -113,25 +126,25 @@ export async function render(objParams) {
             arrJobs.map(async (objJob) => ({
                 ...objJob,
                 bullets: await getJobBullets(objJob.id),
-            }))
+            })),
         );
         const arrProjectsWithBullets = await Promise.all(
             arrProjects.map(async (objProject) => ({
                 ...objProject,
                 bullets: await getProjectBullets(objProject.id),
-            }))
+            })),
         );
 
         // Bundle library data for passing to the UI renderer
         const objLibrary = {
-            summaries:      arrSummaries,
-            educations:     arrEducations,
-            jobs:           arrJobsWithBullets,
-            projects:       arrProjectsWithBullets,
+            summaries: arrSummaries,
+            educations: arrEducations,
+            jobs: arrJobsWithBullets,
+            projects: arrProjectsWithBullets,
             skillCategories: arrSkillCategories,
-            skills:         arrSkills,
+            skills: arrSkills,
             certifications: arrCertifications,
-            awards:         arrAwards,
+            awards: arrAwards,
         };
 
         // Clear spinner and render the full builder UI
@@ -158,10 +171,10 @@ export async function render(objParams) {
  * @param {number} intId - resume ID
  */
 function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
-
     // ---- Page header row: title + navigation actions ----
     const elPageHeader = document.createElement("div");
-    elPageHeader.className = "d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2";
+    elPageHeader.className =
+        "d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2";
 
     const elH1 = document.createElement("h1");
     elH1.className = "h3 mb-0";
@@ -240,7 +253,10 @@ function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
     elSaveMetaBtn.type = "button";
     elSaveMetaBtn.className = "btn btn-secondary";
     elSaveMetaBtn.textContent = "Save Details";
-    elSaveMetaBtn.setAttribute("aria-label", "Save resume name and target role");
+    elSaveMetaBtn.setAttribute(
+        "aria-label",
+        "Save resume name and target role",
+    );
 
     async function saveResumeDetails() {
         const strName = elNameInput.value.trim();
@@ -291,7 +307,8 @@ function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
 
     const elSectionsHelp = document.createElement("p");
     elSectionsHelp.className = "text-muted small mb-3";
-    elSectionsHelp.textContent = "Check sections to include them. For each section, choose which items to feature.";
+    elSectionsHelp.textContent =
+        "Check sections to include them. For each section, choose which items to feature.";
 
     elSectionsBody.appendChild(elSectionsTitle);
     elSectionsBody.appendChild(elSectionsHelp);
@@ -301,16 +318,20 @@ function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
     const blnHasSavedSections = objSelections.sections.length > 0;
     const setSectionIncluded = new Set(
         blnHasSavedSections
-            ? objSelections.sections.filter((s) => s.included === 1).map((s) => s.section_type)
-            : SECTION_ORDER  // default: all sections on for a fresh resume
+            ? objSelections.sections
+                  .filter((s) => s.included === 1)
+                  .map((s) => s.section_type)
+            : SECTION_ORDER, // default: all sections on for a fresh resume
     );
 
     // Build quick-lookup sets for existing item and bullet selections
     const setSelectedItems = new Set(
-        objSelections.items.map((i) => `${i.section_type}:${i.item_id}`)
+        objSelections.items.map((i) => `${i.section_type}:${i.item_id}`),
     );
     const setSelectedBullets = new Set(
-        objSelections.bullets.map((b) => `${b.bullet_type}:${b.parent_item_id}:${b.bullet_id}`)
+        objSelections.bullets.map(
+            (b) => `${b.bullet_type}:${b.parent_item_id}:${b.bullet_id}`,
+        ),
     );
 
     // Build each section row and append to the checklist container
@@ -324,7 +345,7 @@ function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
             setSectionIncluded.has(strSectionType),
             objLibrary,
             setSelectedItems,
-            setSelectedBullets
+            setSelectedBullets,
         );
         elSectionsList.appendChild(elRow);
     });
@@ -341,7 +362,10 @@ function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
     elSaveBtn.type = "button";
     elSaveBtn.className = "btn btn-primary";
     elSaveBtn.textContent = "Save Selections";
-    elSaveBtn.setAttribute("aria-label", "Save all section and item selections for this resume");
+    elSaveBtn.setAttribute(
+        "aria-label",
+        "Save all section and item selections for this resume",
+    );
 
     elSaveBtn.addEventListener("click", async () => {
         elSaveBtn.disabled = true;
@@ -387,8 +411,12 @@ function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
         }
     }
 
-    elPreviewLink.addEventListener("click", (objEvent) => saveBeforePreview(objEvent, elPreviewLink));
-    elPreviewBtn.addEventListener("click", (objEvent) => saveBeforePreview(objEvent, elPreviewBtn));
+    elPreviewLink.addEventListener("click", (objEvent) =>
+        saveBeforePreview(objEvent, elPreviewLink),
+    );
+    elPreviewBtn.addEventListener("click", (objEvent) =>
+        saveBeforePreview(objEvent, elPreviewBtn),
+    );
 
     elActionRow.appendChild(elSaveBtn);
     elActionRow.appendChild(elPreviewBtn);
@@ -411,7 +439,13 @@ function renderBuilderUI(elRoot, objResume, objLibrary, objSelections, intId) {
  * @param {Set<string>} setSelectedBullets - "bulletType:parentId:bulletId" keys
  * @returns {HTMLDivElement}
  */
-function buildSectionRow(strSectionType, blnIncluded, objLibrary, setSelectedItems, setSelectedBullets) {
+function buildSectionRow(
+    strSectionType,
+    blnIncluded,
+    objLibrary,
+    setSelectedItems,
+    setSelectedBullets,
+) {
     const elCard = document.createElement("div");
     elCard.className = "card";
     elCard.dataset.sectionType = strSectionType;
@@ -422,7 +456,7 @@ function buildSectionRow(strSectionType, blnIncluded, objLibrary, setSelectedIte
 
     // Unique IDs for aria association between label and checkbox
     const strCheckId = `section-toggle-${strSectionType}`;
-    const strBodyId  = `section-body-${strSectionType}`;
+    const strBodyId = `section-body-${strSectionType}`;
 
     const elCheckbox = document.createElement("input");
     elCheckbox.type = "checkbox";
@@ -430,7 +464,10 @@ function buildSectionRow(strSectionType, blnIncluded, objLibrary, setSelectedIte
     elCheckbox.className = "form-check-input js-section-toggle";
     elCheckbox.dataset.sectionType = strSectionType;
     elCheckbox.checked = blnIncluded;
-    elCheckbox.setAttribute("aria-label", `Include ${SECTION_LABELS[strSectionType]} section`);
+    elCheckbox.setAttribute(
+        "aria-label",
+        `Include ${SECTION_LABELS[strSectionType]} section`,
+    );
 
     const elLabel = document.createElement("label");
     elLabel.setAttribute("for", strCheckId);
@@ -469,7 +506,13 @@ function buildSectionRow(strSectionType, blnIncluded, objLibrary, setSelectedIte
         elBody.appendChild(elEmpty);
     } else {
         // Build item checkboxes (and nested bullets for jobs/projects)
-        buildItemChecklist(elBody, strSectionType, arrItems, setSelectedItems, setSelectedBullets);
+        buildItemChecklist(
+            elBody,
+            strSectionType,
+            arrItems,
+            setSelectedItems,
+            setSelectedBullets,
+        );
     }
 
     // Toggle body visibility when the section checkbox changes
@@ -498,14 +541,20 @@ function buildSectionRow(strSectionType, blnIncluded, objLibrary, setSelectedIte
  * @param {Set<string>} setSelectedItems
  * @param {Set<string>} setSelectedBullets
  */
-function buildItemChecklist(elBody, strSectionType, arrItems, setSelectedItems, setSelectedBullets) {
+function buildItemChecklist(
+    elBody,
+    strSectionType,
+    arrItems,
+    setSelectedItems,
+    setSelectedBullets,
+) {
     if (strSectionType === "skills") {
         buildSkillChecklist(elBody, arrItems, setSelectedItems);
         return;
     }
 
     arrItems.forEach((objItem) => {
-        const strItemKey  = `${strSectionType}:${objItem.id}`;
+        const strItemKey = `${strSectionType}:${objItem.id}`;
         const blnSelected = setSelectedItems.has(strItemKey);
 
         const elItemRow = document.createElement("div");
@@ -538,9 +587,11 @@ function buildItemChecklist(elBody, strSectionType, arrItems, setSelectedItems, 
         elItemRow.appendChild(elItemCheck);
 
         // For jobs and projects, add nested bullet checkboxes indented below the item
-        if ((strSectionType === "jobs" || strSectionType === "projects") &&
-            objItem.bullets && objItem.bullets.length > 0) {
-
+        if (
+            (strSectionType === "jobs" || strSectionType === "projects") &&
+            objItem.bullets &&
+            objItem.bullets.length > 0
+        ) {
             const strBulletType = strSectionType === "jobs" ? "job" : "project";
 
             // Bullet container — hidden when parent item is unchecked
@@ -567,10 +618,14 @@ function buildItemChecklist(elBody, strSectionType, arrItems, setSelectedItems, 
                 elBulletCb.checked = blnBulletSelected;
 
                 // Truncate very long bullet text in the aria-label to keep it manageable
-                const strShort = objBullet.text.length > 70
-                    ? objBullet.text.slice(0, 70) + "…"
-                    : objBullet.text;
-                elBulletCb.setAttribute("aria-label", `Include bullet: ${strShort}`);
+                const strShort =
+                    objBullet.text.length > 70
+                        ? objBullet.text.slice(0, 70) + "…"
+                        : objBullet.text;
+                elBulletCb.setAttribute(
+                    "aria-label",
+                    `Include bullet: ${strShort}`,
+                );
 
                 const elBulletLabel = document.createElement("label");
                 elBulletLabel.setAttribute("for", strBulletId);
@@ -589,9 +644,11 @@ function buildItemChecklist(elBody, strSectionType, arrItems, setSelectedItems, 
                 } else {
                     elBulletContainer.classList.add("d-none");
                     // Uncheck all bullets so they're not included when parent is off
-                    elBulletContainer.querySelectorAll(".js-bullet-checkbox").forEach((el) => {
-                        el.checked = false;
-                    });
+                    elBulletContainer
+                        .querySelectorAll(".js-bullet-checkbox")
+                        .forEach((el) => {
+                            el.checked = false;
+                        });
                 }
             });
 
@@ -708,14 +765,22 @@ function buildSkillCheckbox(objSkill, blnSelected) {
  */
 function getLibraryItemsForSection(strSectionType, objLibrary) {
     switch (strSectionType) {
-        case "summary":        return objLibrary.summaries;
-        case "education":      return objLibrary.educations;
-        case "jobs":           return objLibrary.jobs;
-        case "projects":       return objLibrary.projects;
-        case "skills":         return objLibrary.skills;
-        case "certifications": return objLibrary.certifications;
-        case "awards":         return objLibrary.awards;
-        default:               return [];
+        case "summary":
+            return objLibrary.summaries;
+        case "education":
+            return objLibrary.educations;
+        case "jobs":
+            return objLibrary.jobs;
+        case "projects":
+            return objLibrary.projects;
+        case "skills":
+            return objLibrary.skills;
+        case "certifications":
+            return objLibrary.certifications;
+        case "awards":
+            return objLibrary.awards;
+        default:
+            return [];
     }
 }
 
@@ -733,7 +798,12 @@ function getItemLabel(strSectionType, objItem) {
     switch (strSectionType) {
         case "summary":
             // Use the label field if set, otherwise truncate the content
-            return objItem.label || (objItem.content ? objItem.content.slice(0, 60) + "…" : `Summary #${objItem.id}`);
+            return (
+                objItem.label ||
+                (objItem.content
+                    ? objItem.content.slice(0, 60) + "…"
+                    : `Summary #${objItem.id}`)
+            );
         case "education":
             return `${objItem.degree || "Degree"} — ${objItem.institution}`;
         case "jobs":
@@ -743,9 +813,13 @@ function getItemLabel(strSectionType, objItem) {
         case "skills":
             return objItem.name;
         case "certifications":
-            return objItem.issuer ? `${objItem.name} — ${objItem.issuer}` : objItem.name;
+            return objItem.issuer
+                ? `${objItem.name} — ${objItem.issuer}`
+                : objItem.name;
         case "awards":
-            return objItem.issuer ? `${objItem.name} — ${objItem.issuer}` : objItem.name;
+            return objItem.issuer
+                ? `${objItem.name} — ${objItem.issuer}`
+                : objItem.name;
         default:
             return String(objItem.id);
     }
@@ -764,30 +838,32 @@ function getItemLabel(strSectionType, objItem) {
  */
 async function saveAllSelections(intId, elSectionsList) {
     const arrSections = [];
-    const arrItems    = [];
-    const arrBullets  = [];
+    const arrItems = [];
+    const arrBullets = [];
 
     let intSectionOrder = 0;
 
     // Collect section toggles
-    const arrSectionToggles = elSectionsList.querySelectorAll(".js-section-toggle");
+    const arrSectionToggles =
+        elSectionsList.querySelectorAll(".js-section-toggle");
     arrSectionToggles.forEach((elCb) => {
         arrSections.push({
             section_type: elCb.dataset.sectionType,
-            included:     elCb.checked ? 1 : 0,
-            sort_order:   intSectionOrder++,
+            included: elCb.checked ? 1 : 0,
+            sort_order: intSectionOrder++,
         });
     });
 
     // Collect selected items — only checked boxes contribute
     let intItemOrder = 0;
-    const arrItemCheckboxes = elSectionsList.querySelectorAll(".js-item-checkbox");
+    const arrItemCheckboxes =
+        elSectionsList.querySelectorAll(".js-item-checkbox");
     arrItemCheckboxes.forEach((elCb) => {
         if (elCb.checked) {
             arrItems.push({
                 section_type: elCb.dataset.sectionType,
-                item_id:      parseInt(elCb.dataset.itemId, 10),
-                sort_order:   intItemOrder++,
+                item_id: parseInt(elCb.dataset.itemId, 10),
+                sort_order: intItemOrder++,
             });
         }
     });
@@ -796,14 +872,16 @@ async function saveAllSelections(intId, elSectionsList) {
     // (The bullet container is hidden and bullets unchecked when parent item is unchecked,
     //  so this loop will naturally produce no orphaned bullets.)
     let intBulletOrder = 0;
-    const arrBulletCheckboxes = elSectionsList.querySelectorAll(".js-bullet-checkbox");
+    const arrBulletCheckboxes = elSectionsList.querySelectorAll(
+        ".js-bullet-checkbox",
+    );
     arrBulletCheckboxes.forEach((elCb) => {
         if (elCb.checked) {
             arrBullets.push({
                 parent_item_id: parseInt(elCb.dataset.parentItemId, 10),
-                bullet_type:    elCb.dataset.bulletType,
-                bullet_id:      parseInt(elCb.dataset.bulletId, 10),
-                sort_order:     intBulletOrder++,
+                bullet_type: elCb.dataset.bulletType,
+                bullet_id: parseInt(elCb.dataset.bulletId, 10),
+                sort_order: intBulletOrder++,
             });
         }
     });
@@ -811,7 +889,7 @@ async function saveAllSelections(intId, elSectionsList) {
     // Send the full selection state to the API — this replaces any existing selections
     await putResumeSelections(intId, {
         sections: arrSections,
-        items:    arrItems,
-        bullets:  arrBullets,
+        items: arrItems,
+        bullets: arrBullets,
     });
 }

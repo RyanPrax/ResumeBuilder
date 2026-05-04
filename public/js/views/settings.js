@@ -31,7 +31,8 @@ export async function render(_objParams) {
 
     const elDesc = document.createElement("p");
     elDesc.className = "text-muted small mb-3";
-    elDesc.textContent = "Paste your Gemini API key to enable AI-powered resume review. The stored key takes priority over any key set in the server .env file. The key is stored locally in the app database and never transmitted anywhere except directly to the Gemini API.";
+    elDesc.textContent =
+        "Paste your Gemini API key to enable AI-powered resume review. The stored key takes priority over any key set in the server .env file. The key is stored locally in the app database and never transmitted anywhere except directly to the Gemini API.";
     elSection.appendChild(elDesc);
 
     // Status badge row
@@ -105,7 +106,9 @@ export async function render(_objParams) {
         try {
             const arrStatus = await getApiKeyStatus();
             const blnHasKey = arrStatus[0]?.has_key ?? false;
-            elBadge.textContent = blnHasKey ? "Key configured" : "No key stored";
+            elBadge.textContent = blnHasKey
+                ? "Key configured"
+                : "No key stored";
             elBadge.className = `badge ${blnHasKey ? "bg-success" : "bg-warning text-dark"}`;
             elClearBtn.disabled = !blnHasKey;
         } catch {
@@ -122,7 +125,9 @@ export async function render(_objParams) {
         elAlert.setAttribute("role", "alert");
         elAlert.textContent = strText;
         elMsg.appendChild(elAlert);
-        setTimeout(() => { elMsg.innerHTML = ""; }, 4000);
+        setTimeout(() => {
+            elMsg.innerHTML = "";
+        }, 4000);
     };
 
     // ---- Save handler ----
@@ -147,7 +152,10 @@ export async function render(_objParams) {
 
     // Submit on Enter in the input
     elInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") { e.preventDefault(); elSaveBtn.click(); }
+        if (e.key === "Enter") {
+            e.preventDefault();
+            elSaveBtn.click();
+        }
     });
 
     // ---- Clear handler ----
@@ -155,7 +163,10 @@ export async function render(_objParams) {
         elClearBtn.disabled = true;
         try {
             await deleteApiKey();
-            fnShowMsg("Stored key cleared. The server .env key will be used as fallback.", "secondary");
+            fnShowMsg(
+                "Stored key cleared. The server .env key will be used as fallback.",
+                "secondary",
+            );
             await fnRefreshStatus();
         } catch (err) {
             fnShowMsg(err.message, "danger");

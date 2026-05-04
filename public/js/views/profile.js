@@ -4,35 +4,72 @@
 // Each tab renders a list of items with add/edit/delete forms.
 
 import {
-    getContact, putContact,
-    getSummaries, postSummary, putSummary, deleteSummary,
-    getEducations, postEducation, putEducation, deleteEducation,
-    getJobs, postJob, putJob, deleteJob,
-    getJobBullets, postJobBullet, putJobBullet, deleteJobBullet,
-    getProjects, postProject, putProject, deleteProject,
-    getProjectBullets, postProjectBullet, putProjectBullet, deleteProjectBullet,
-    getSkillCategories, postSkillCategory, deleteSkillCategory,
-    getSkills, postSkill, deleteSkill,
-    getCertifications, postCertification, putCertification, deleteCertification,
-    getAwards, postAward, putAward, deleteAward,
+    getContact,
+    putContact,
+    getSummaries,
+    postSummary,
+    putSummary,
+    deleteSummary,
+    getEducations,
+    postEducation,
+    putEducation,
+    deleteEducation,
+    getJobs,
+    postJob,
+    putJob,
+    deleteJob,
+    getJobBullets,
+    postJobBullet,
+    putJobBullet,
+    deleteJobBullet,
+    getProjects,
+    postProject,
+    putProject,
+    deleteProject,
+    getProjectBullets,
+    postProjectBullet,
+    putProjectBullet,
+    deleteProjectBullet,
+    getSkillCategories,
+    postSkillCategory,
+    deleteSkillCategory,
+    getSkills,
+    postSkill,
+    deleteSkill,
+    getCertifications,
+    postCertification,
+    putCertification,
+    deleteCertification,
+    getAwards,
+    postAward,
+    putAward,
+    deleteAward,
 } from "/js/api.js";
 // navigate imported but not used in this view — profile stays in-place after saves
-import { showError, showSuccess, confirmDelete, disableSubmit } from "/js/components/form-helpers.js";
-import { attachAiReview, createAiReviewButton } from "/js/components/ai-review.js";
+import {
+    showError,
+    showSuccess,
+    confirmDelete,
+    disableSubmit,
+} from "/js/components/form-helpers.js";
+import {
+    attachAiReview,
+    createAiReviewButton,
+} from "/js/components/ai-review.js";
 
 // ============================================================
 // Tab definitions — order matches the UI tab bar
 // ============================================================
 
 const ARR_TABS = [
-    { key: "contact",   label: "Contact" },
-    { key: "summary",   label: "Summary" },
+    { key: "contact", label: "Contact" },
+    { key: "summary", label: "Summary" },
     { key: "education", label: "Education" },
-    { key: "jobs",      label: "Jobs" },
-    { key: "projects",  label: "Projects" },
-    { key: "skills",    label: "Skills" },
-    { key: "certs",     label: "Certifications" },
-    { key: "awards",    label: "Awards" },
+    { key: "jobs", label: "Jobs" },
+    { key: "projects", label: "Projects" },
+    { key: "skills", label: "Skills" },
+    { key: "certs", label: "Certifications" },
+    { key: "awards", label: "Awards" },
 ];
 
 // ============================================================
@@ -67,11 +104,15 @@ export async function render(objParams) {
         elLi.setAttribute("role", "presentation");
 
         const elLink = document.createElement("a");
-        elLink.className = "nav-link" + (objTab.key === strActiveTab ? " active" : "");
+        elLink.className =
+            "nav-link" + (objTab.key === strActiveTab ? " active" : "");
         elLink.href = `/profile/${objTab.key}`;
         elLink.setAttribute("data-spa", "");
         elLink.setAttribute("role", "tab");
-        elLink.setAttribute("aria-selected", objTab.key === strActiveTab ? "true" : "false");
+        elLink.setAttribute(
+            "aria-selected",
+            objTab.key === strActiveTab ? "true" : "false",
+        );
         elLink.textContent = objTab.label;
         elLi.appendChild(elLink);
         elTabList.appendChild(elLi);
@@ -100,14 +141,30 @@ export async function render(objParams) {
  */
 async function renderTab(strTab, elContainer) {
     switch (strTab) {
-        case "contact":    await renderContactTab(elContainer); break;
-        case "summary":    await renderSummaryTab(elContainer); break;
-        case "education":  await renderEducationTab(elContainer); break;
-        case "jobs":       await renderJobsTab(elContainer); break;
-        case "projects":   await renderProjectsTab(elContainer); break;
-        case "skills":     await renderSkillsTab(elContainer); break;
-        case "certs":      await renderCertsTab(elContainer); break;
-        case "awards":     await renderAwardsTab(elContainer); break;
+        case "contact":
+            await renderContactTab(elContainer);
+            break;
+        case "summary":
+            await renderSummaryTab(elContainer);
+            break;
+        case "education":
+            await renderEducationTab(elContainer);
+            break;
+        case "jobs":
+            await renderJobsTab(elContainer);
+            break;
+        case "projects":
+            await renderProjectsTab(elContainer);
+            break;
+        case "skills":
+            await renderSkillsTab(elContainer);
+            break;
+        case "certs":
+            await renderCertsTab(elContainer);
+            break;
+        case "awards":
+            await renderAwardsTab(elContainer);
+            break;
         default: {
             const elMsg = document.createElement("div");
             elMsg.className = "alert alert-warning";
@@ -198,10 +255,16 @@ async function renderContactTab(elContainer) {
     elForm.appendChild(elLinksDiv);
 
     // Populate existing links
-    const arrLinks = Array.isArray(objContact.links_json) ? objContact.links_json : [];
-    arrLinks.forEach((objLink) => addLinkRow(elLinksContainer, objLink.label, objLink.url));
+    const arrLinks = Array.isArray(objContact.links_json)
+        ? objContact.links_json
+        : [];
+    arrLinks.forEach((objLink) =>
+        addLinkRow(elLinksContainer, objLink.label, objLink.url),
+    );
 
-    elAddLinkBtn.addEventListener("click", () => addLinkRow(elLinksContainer, "", ""));
+    elAddLinkBtn.addEventListener("click", () =>
+        addLinkRow(elLinksContainer, "", ""),
+    );
 
     // Submit button
     const elSubmit = document.createElement("button");
@@ -214,7 +277,9 @@ async function renderContactTab(elContainer) {
         objEvent.preventDefault();
         clearFormErrors(elSection);
 
-        const strFullName = elForm.querySelector("[name='full_name']").value.trim();
+        const strFullName = elForm
+            .querySelector("[name='full_name']")
+            .value.trim();
         if (!strFullName) {
             showError(elSection, "Full name is required.");
             return;
@@ -222,10 +287,12 @@ async function renderContactTab(elContainer) {
 
         // Collect link rows
         const arrLinkRows = [...elLinksContainer.querySelectorAll(".link-row")];
-        const arrCollectedLinks = arrLinkRows.map((elRow) => ({
-            label: elRow.querySelector(".link-label").value.trim(),
-            url: elRow.querySelector(".link-url").value.trim(),
-        })).filter((objL) => objL.label && objL.url);
+        const arrCollectedLinks = arrLinkRows
+            .map((elRow) => ({
+                label: elRow.querySelector(".link-label").value.trim(),
+                url: elRow.querySelector(".link-url").value.trim(),
+            }))
+            .filter((objL) => objL.label && objL.url);
 
         const fnEnable = disableSubmit(elForm);
         try {
@@ -233,7 +300,9 @@ async function renderContactTab(elContainer) {
                 full_name: strFullName,
                 email: elForm.querySelector("[name='email']").value.trim(),
                 phone: elForm.querySelector("[name='phone']").value.trim(),
-                location: elForm.querySelector("[name='location']").value.trim(),
+                location: elForm
+                    .querySelector("[name='location']")
+                    .value.trim(),
                 links_json: arrCollectedLinks,
             });
             showSuccess("Contact saved.");
@@ -299,8 +368,21 @@ async function renderSummaryTab(elContainer) {
         fnDelete: deleteSummary,
         fnGetLabel: (obj) => obj.label || "(untitled)",
         arrFields: [
-            { name: "label", label: "Label", type: "text", required: true, placeholder: "e.g. Software Engineer" },
-            { name: "content", label: "Content", type: "textarea", required: true, rows: 5, aiReview: "summary" },
+            {
+                name: "label",
+                label: "Label",
+                type: "text",
+                required: true,
+                placeholder: "e.g. Software Engineer",
+            },
+            {
+                name: "content",
+                label: "Content",
+                type: "textarea",
+                required: true,
+                rows: 5,
+                aiReview: "summary",
+            },
         ],
     });
 }
@@ -317,15 +399,37 @@ async function renderEducationTab(elContainer) {
         fnPost: postEducation,
         fnPut: putEducation,
         fnDelete: deleteEducation,
-        fnGetLabel: (obj) => `${obj.institution}${obj.degree ? " — " + obj.degree : ""}`,
+        fnGetLabel: (obj) =>
+            `${obj.institution}${obj.degree ? " — " + obj.degree : ""}`,
         arrFields: [
-            { name: "institution", label: "Institution", type: "text", required: true },
+            {
+                name: "institution",
+                label: "Institution",
+                type: "text",
+                required: true,
+            },
             { name: "degree", label: "Degree", type: "text" },
             { name: "field", label: "Field of Study", type: "text" },
-            { name: "start_date", label: "Start Date", type: "text", placeholder: "YYYY-MM" },
-            { name: "end_date", label: "End Date", type: "text", placeholder: "YYYY-MM or leave blank" },
+            {
+                name: "start_date",
+                label: "Start Date",
+                type: "text",
+                placeholder: "YYYY-MM",
+            },
+            {
+                name: "end_date",
+                label: "End Date",
+                type: "text",
+                placeholder: "YYYY-MM or leave blank",
+            },
             { name: "gpa", label: "GPA", type: "text" },
-            { name: "details", label: "Additional Details", type: "textarea", rows: 3, aiReview: "education" },
+            {
+                name: "details",
+                label: "Additional Details",
+                type: "textarea",
+                rows: 3,
+                aiReview: "education",
+            },
         ],
     });
 }
@@ -355,10 +459,12 @@ async function renderJobsTab(elContainer) {
     }
 
     // "Add Job" form (collapsed by default)
-    elSection.appendChild(buildJobForm(null, async () => {
-        arrJobs = await getJobs();
-        await renderJobsList(elSection, arrJobs);
-    }));
+    elSection.appendChild(
+        buildJobForm(null, async () => {
+            arrJobs = await getJobs();
+            await renderJobsList(elSection, arrJobs);
+        }),
+    );
 
     const elListDiv = document.createElement("div");
     elListDiv.id = "jobsList";
@@ -420,10 +526,12 @@ async function buildJobListItem(objJob, fnRefresh) {
 
     const elInfo = document.createElement("div");
     const elTitle = document.createElement("strong");
-    elTitle.textContent = objJob.title ? `${objJob.title} at ${objJob.company}` : objJob.company;
+    elTitle.textContent = objJob.title
+        ? `${objJob.title} at ${objJob.company}`
+        : objJob.company;
     const elDates = document.createElement("small");
     elDates.className = "text-muted d-block";
-    const strEnd = objJob.is_current ? "Present" : (objJob.end_date || "");
+    const strEnd = objJob.is_current ? "Present" : objJob.end_date || "";
     elDates.textContent = `${objJob.start_date || ""}${strEnd ? " – " + strEnd : ""}${objJob.location ? " · " + objJob.location : ""}`;
     elInfo.appendChild(elTitle);
     elInfo.appendChild(elDates);
@@ -445,7 +553,9 @@ async function buildJobListItem(objJob, fnRefresh) {
     elDelBtn.textContent = "Delete";
     elDelBtn.setAttribute("aria-label", `Delete job ${objJob.company}`);
     elDelBtn.addEventListener("click", async () => {
-        const blnConfirmed = await confirmDelete(`${objJob.title || objJob.company}`);
+        const blnConfirmed = await confirmDelete(
+            `${objJob.title || objJob.company}`,
+        );
         if (!blnConfirmed) return;
         try {
             await deleteJob(objJob.id);
@@ -474,10 +584,12 @@ async function buildJobListItem(objJob, fnRefresh) {
             return;
         }
         elEditArea.innerHTML = "";
-        elEditArea.appendChild(buildJobForm(objJob, async () => {
-            elEditArea.classList.add("d-none");
-            await fnRefresh();
-        }));
+        elEditArea.appendChild(
+            buildJobForm(objJob, async () => {
+                elEditArea.classList.add("d-none");
+                await fnRefresh();
+            }),
+        );
         elEditArea.classList.remove("d-none");
         elEditBtn.textContent = "Cancel";
     });
@@ -493,7 +605,9 @@ async function buildJobListItem(objJob, fnRefresh) {
     let arrBullets;
     try {
         arrBullets = await getJobBullets(objJob.id);
-    } catch { arrBullets = []; }
+    } catch {
+        arrBullets = [];
+    }
 
     const elBulletList = document.createElement("div");
     elBulletList.className = "mb-2";
@@ -501,12 +615,26 @@ async function buildJobListItem(objJob, fnRefresh) {
 
     const fnRefreshBullets = async () => {
         arrBullets = await getJobBullets(objJob.id);
-        renderBulletList(elBulletList, arrBullets, objJob.id, "job", fnRefreshBullets);
+        renderBulletList(
+            elBulletList,
+            arrBullets,
+            objJob.id,
+            "job",
+            fnRefreshBullets,
+        );
     };
-    renderBulletList(elBulletList, arrBullets, objJob.id, "job", fnRefreshBullets);
+    renderBulletList(
+        elBulletList,
+        arrBullets,
+        objJob.id,
+        "job",
+        fnRefreshBullets,
+    );
 
     // Add bullet form
-    elBulletsDiv.appendChild(buildBulletAddForm(objJob.id, "job", fnRefreshBullets));
+    elBulletsDiv.appendChild(
+        buildBulletAddForm(objJob.id, "job", fnRefreshBullets),
+    );
     elItem.appendChild(elBulletsDiv);
 
     return elItem;
@@ -521,7 +649,9 @@ async function buildJobListItem(objJob, fnRefresh) {
 function buildJobForm(objJob, fnOnSave) {
     const blnIsEdit = objJob !== null;
     const elWrapper = document.createElement("div");
-    elWrapper.className = blnIsEdit ? "border rounded p-3 bg-light" : "card mb-3";
+    elWrapper.className = blnIsEdit
+        ? "border rounded p-3 bg-light"
+        : "card mb-3";
 
     const elInner = blnIsEdit ? elWrapper : document.createElement("div");
     if (!blnIsEdit) {
@@ -537,7 +667,14 @@ function buildJobForm(objJob, fnOnSave) {
     const elForm = document.createElement("form");
     elForm.noValidate = true;
 
-    const addInput = (strLabel, strName, strType, strValue, blnRequired, strPlaceholder) => {
+    const addInput = (
+        strLabel,
+        strName,
+        strType,
+        strValue,
+        blnRequired,
+        strPlaceholder,
+    ) => {
         const elDiv = document.createElement("div");
         elDiv.className = "mb-2";
         const elLabel = document.createElement("label");
@@ -561,8 +698,22 @@ function buildJobForm(objJob, fnOnSave) {
     addInput("Company *", "company", "text", objJob?.company, true);
     addInput("Title", "title", "text", objJob?.title);
     addInput("Location", "location", "text", objJob?.location);
-    addInput("Start Date", "start_date", "text", objJob?.start_date, false, "YYYY-MM");
-    addInput("End Date", "end_date", "text", objJob?.end_date, false, "YYYY-MM or blank if current");
+    addInput(
+        "Start Date",
+        "start_date",
+        "text",
+        objJob?.start_date,
+        false,
+        "YYYY-MM",
+    );
+    addInput(
+        "End Date",
+        "end_date",
+        "text",
+        objJob?.end_date,
+        false,
+        "YYYY-MM or blank if current",
+    );
 
     // Is Current checkbox
     const elCheckDiv = document.createElement("div");
@@ -590,7 +741,9 @@ function buildJobForm(objJob, fnOnSave) {
 
     elForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const strCompany = elForm.querySelector("[name='company']").value.trim();
+        const strCompany = elForm
+            .querySelector("[name='company']")
+            .value.trim();
         if (!strCompany) {
             showError(elInner, "Company is required.");
             return;
@@ -599,9 +752,13 @@ function buildJobForm(objJob, fnOnSave) {
             company: strCompany,
             title: elForm.querySelector("[name='title']").value.trim(),
             location: elForm.querySelector("[name='location']").value.trim(),
-            start_date: elForm.querySelector("[name='start_date']").value.trim(),
+            start_date: elForm
+                .querySelector("[name='start_date']")
+                .value.trim(),
             end_date: elForm.querySelector("[name='end_date']").value.trim(),
-            is_current: elForm.querySelector("[name='is_current']").checked ? 1 : 0,
+            is_current: elForm.querySelector("[name='is_current']").checked
+                ? 1
+                : 0,
         };
         const fnEnable = disableSubmit(elForm);
         try {
@@ -649,10 +806,12 @@ async function renderProjectsTab(elContainer) {
         return;
     }
 
-    elSection.appendChild(buildProjectForm(null, async () => {
-        arrProjects = await getProjects();
-        await renderProjectsList(elSection, arrProjects);
-    }));
+    elSection.appendChild(
+        buildProjectForm(null, async () => {
+            arrProjects = await getProjects();
+            await renderProjectsList(elSection, arrProjects);
+        }),
+    );
 
     const elListDiv = document.createElement("div");
     elListDiv.id = "projectsList";
@@ -703,7 +862,9 @@ async function buildProjectListItem(objProject, fnRefresh) {
     elTitle.textContent = objProject.name;
     const elDates = document.createElement("small");
     elDates.className = "text-muted d-block";
-    const strEnd = objProject.is_current ? "Present" : (objProject.end_date || "");
+    const strEnd = objProject.is_current
+        ? "Present"
+        : objProject.end_date || "";
     elDates.textContent = `${objProject.start_date || ""}${strEnd ? " – " + strEnd : ""}`;
     elInfo.appendChild(elTitle);
     elInfo.appendChild(elDates);
@@ -751,10 +912,12 @@ async function buildProjectListItem(objProject, fnRefresh) {
             return;
         }
         elEditArea.innerHTML = "";
-        elEditArea.appendChild(buildProjectForm(objProject, async () => {
-            elEditArea.classList.add("d-none");
-            await fnRefresh();
-        }));
+        elEditArea.appendChild(
+            buildProjectForm(objProject, async () => {
+                elEditArea.classList.add("d-none");
+                await fnRefresh();
+            }),
+        );
         elEditArea.classList.remove("d-none");
         elEditBtn.textContent = "Cancel";
     });
@@ -770,7 +933,9 @@ async function buildProjectListItem(objProject, fnRefresh) {
     let arrBullets;
     try {
         arrBullets = await getProjectBullets(objProject.id);
-    } catch { arrBullets = []; }
+    } catch {
+        arrBullets = [];
+    }
 
     const elBulletList = document.createElement("div");
     elBulletList.className = "mb-2";
@@ -778,10 +943,24 @@ async function buildProjectListItem(objProject, fnRefresh) {
 
     const fnRefreshBullets = async () => {
         arrBullets = await getProjectBullets(objProject.id);
-        renderBulletList(elBulletList, arrBullets, objProject.id, "project", fnRefreshBullets);
+        renderBulletList(
+            elBulletList,
+            arrBullets,
+            objProject.id,
+            "project",
+            fnRefreshBullets,
+        );
     };
-    renderBulletList(elBulletList, arrBullets, objProject.id, "project", fnRefreshBullets);
-    elBulletsDiv.appendChild(buildBulletAddForm(objProject.id, "project", fnRefreshBullets));
+    renderBulletList(
+        elBulletList,
+        arrBullets,
+        objProject.id,
+        "project",
+        fnRefreshBullets,
+    );
+    elBulletsDiv.appendChild(
+        buildBulletAddForm(objProject.id, "project", fnRefreshBullets),
+    );
     elItem.appendChild(elBulletsDiv);
 
     return elItem;
@@ -790,7 +969,9 @@ async function buildProjectListItem(objProject, fnRefresh) {
 function buildProjectForm(objProject, fnOnSave) {
     const blnIsEdit = objProject !== null;
     const elWrapper = document.createElement("div");
-    elWrapper.className = blnIsEdit ? "border rounded p-3 bg-light" : "card mb-3";
+    elWrapper.className = blnIsEdit
+        ? "border rounded p-3 bg-light"
+        : "card mb-3";
 
     const elInner = blnIsEdit ? elWrapper : document.createElement("div");
     if (!blnIsEdit) {
@@ -806,7 +987,14 @@ function buildProjectForm(objProject, fnOnSave) {
     const elForm = document.createElement("form");
     elForm.noValidate = true;
 
-    const addInput = (strLabel, strName, strType, strValue, blnRequired, strPlaceholder) => {
+    const addInput = (
+        strLabel,
+        strName,
+        strType,
+        strValue,
+        blnRequired,
+        strPlaceholder,
+    ) => {
         const elDiv = document.createElement("div");
         elDiv.className = "mb-2";
         const elLabel = document.createElement("label");
@@ -830,8 +1018,22 @@ function buildProjectForm(objProject, fnOnSave) {
     addInput("Name *", "name", "text", objProject?.name, true);
     addInput("Link", "link", "url", objProject?.link);
     addInput("Description", "description", "text", objProject?.description);
-    addInput("Start Date", "start_date", "text", objProject?.start_date, false, "YYYY-MM");
-    addInput("End Date", "end_date", "text", objProject?.end_date, false, "YYYY-MM or blank");
+    addInput(
+        "Start Date",
+        "start_date",
+        "text",
+        objProject?.start_date,
+        false,
+        "YYYY-MM",
+    );
+    addInput(
+        "End Date",
+        "end_date",
+        "text",
+        objProject?.end_date,
+        false,
+        "YYYY-MM or blank",
+    );
 
     const elCheckDiv = document.createElement("div");
     elCheckDiv.className = "form-check mb-2";
@@ -843,7 +1045,10 @@ function buildProjectForm(objProject, fnOnSave) {
     elCheck.checked = Boolean(objProject?.is_current);
     const elCheckLabel = document.createElement("label");
     elCheckLabel.className = "form-check-label small";
-    elCheckLabel.setAttribute("for", `proj_is_current_${objProject?.id ?? "new"}`);
+    elCheckLabel.setAttribute(
+        "for",
+        `proj_is_current_${objProject?.id ?? "new"}`,
+    );
     elCheckLabel.textContent = "Currently working on this";
     elCheckDiv.appendChild(elCheck);
     elCheckDiv.appendChild(elCheckLabel);
@@ -865,10 +1070,16 @@ function buildProjectForm(objProject, fnOnSave) {
         const objData = {
             name: strName,
             link: elForm.querySelector("[name='link']").value.trim(),
-            description: elForm.querySelector("[name='description']").value.trim(),
-            start_date: elForm.querySelector("[name='start_date']").value.trim(),
+            description: elForm
+                .querySelector("[name='description']")
+                .value.trim(),
+            start_date: elForm
+                .querySelector("[name='start_date']")
+                .value.trim(),
             end_date: elForm.querySelector("[name='end_date']").value.trim(),
-            is_current: elForm.querySelector("[name='is_current']").checked ? 1 : 0,
+            is_current: elForm.querySelector("[name='is_current']").checked
+                ? 1
+                : 0,
         };
         const fnEnable = disableSubmit(elForm);
         try {
@@ -904,7 +1115,13 @@ function buildProjectForm(objProject, fnOnSave) {
  * @param {"job"|"project"} strType
  * @param {Function} fnRefresh
  */
-function renderBulletList(elContainer, arrBullets, intParentId, strType, fnRefresh) {
+function renderBulletList(
+    elContainer,
+    arrBullets,
+    intParentId,
+    strType,
+    fnRefresh,
+) {
     elContainer.innerHTML = "";
     if (arrBullets.length === 0) {
         const elMsg = document.createElement("p");
@@ -917,7 +1134,8 @@ function renderBulletList(elContainer, arrBullets, intParentId, strType, fnRefre
     elUl.className = "list-group list-group-flush";
     arrBullets.forEach((objBullet) => {
         const elLi = document.createElement("li");
-        elLi.className = "list-group-item px-0 py-1 d-flex justify-content-between align-items-start gap-2";
+        elLi.className =
+            "list-group-item px-0 py-1 d-flex justify-content-between align-items-start gap-2";
 
         const elText = document.createElement("span");
         elText.className = "flex-grow-1 small";
@@ -976,7 +1194,8 @@ function renderBulletList(elContainer, arrBullets, intParentId, strType, fnRefre
 
             const elSaveBtn = document.createElement("button");
             elSaveBtn.type = "button";
-            elSaveBtn.className = "btn btn-sm btn-primary py-0 px-1 bullet-save-btn";
+            elSaveBtn.className =
+                "btn btn-sm btn-primary py-0 px-1 bullet-save-btn";
             elSaveBtn.textContent = "Save";
             elSaveBtn.setAttribute("aria-label", "Save bullet edit");
 
@@ -994,9 +1213,13 @@ function renderBulletList(elContainer, arrBullets, intParentId, strType, fnRefre
                 if (!strNewText) return;
                 try {
                     if (strType === "job") {
-                        await putJobBullet(intParentId, objBullet.id, { text: strNewText });
+                        await putJobBullet(intParentId, objBullet.id, {
+                            text: strNewText,
+                        });
                     } else {
-                        await putProjectBullet(intParentId, objBullet.id, { text: strNewText });
+                        await putProjectBullet(intParentId, objBullet.id, {
+                            text: strNewText,
+                        });
                     }
                     await fnRefresh();
                 } catch (err) {
@@ -1061,7 +1284,10 @@ function buildBulletAddForm(intParentId, strType, fnRefresh) {
 
     elAddBtn.addEventListener("click", fnAdd);
     elInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") { e.preventDefault(); fnAdd(); }
+        if (e.key === "Enter") {
+            e.preventDefault();
+            fnAdd();
+        }
     });
 
     // AI review button placed alongside the Add button below the input
@@ -1092,7 +1318,10 @@ async function renderSkillsTab(elContainer) {
 
     let arrCategories, arrSkills;
     try {
-        [arrCategories, arrSkills] = await Promise.all([getSkillCategories(), getSkills()]);
+        [arrCategories, arrSkills] = await Promise.all([
+            getSkillCategories(),
+            getSkills(),
+        ]);
     } catch (err) {
         showError(elSection, `Failed to load skills: ${err.message}`);
         elContainer.appendChild(elSection);
@@ -1110,7 +1339,12 @@ async function renderSkillsTab(elContainer) {
     elContainer.appendChild(elSection);
 }
 
-function renderSkillsContent(elSection, arrCategories, arrSkills, fnRefreshAll) {
+function renderSkillsContent(
+    elSection,
+    arrCategories,
+    arrSkills,
+    fnRefreshAll,
+) {
     // Remove all dynamic content (preserve the heading)
     const elHeading = elSection.querySelector("h2");
     elSection.innerHTML = "";
@@ -1213,20 +1447,25 @@ function renderSkillsContent(elSection, arrCategories, arrSkills, fnRefreshAll) 
         elTitle.className = "h6";
         elTitle.textContent = "Uncategorized";
         elDiv.appendChild(elTitle);
-        elDiv.appendChild(buildSkillList(arrUncategorized, arrCategories, fnRefreshAll));
+        elDiv.appendChild(
+            buildSkillList(arrUncategorized, arrCategories, fnRefreshAll),
+        );
         elSection.appendChild(elDiv);
     }
 
     // Skills per category
     arrCategories.forEach((objCat) => {
-        const arrCatSkills = arrSkills.filter((s) => s.category_id === objCat.id);
+        const arrCatSkills = arrSkills.filter(
+            (s) => s.category_id === objCat.id,
+        );
         const elCard = document.createElement("div");
         elCard.className = "card mb-3";
         const elCardBody = document.createElement("div");
         elCardBody.className = "card-body";
 
         const elCatHeader = document.createElement("div");
-        elCatHeader.className = "d-flex justify-content-between align-items-center mb-2";
+        elCatHeader.className =
+            "d-flex justify-content-between align-items-center mb-2";
         const elCatTitle = document.createElement("h3");
         elCatTitle.className = "h6 mb-0";
         elCatTitle.textContent = objCat.name;
@@ -1238,7 +1477,10 @@ function renderSkillsContent(elSection, arrCategories, arrSkills, fnRefreshAll) 
         elCatDelBtn.type = "button";
         elCatDelBtn.className = "btn btn-sm btn-outline-danger";
         elCatDelBtn.textContent = "Delete Category";
-        elCatDelBtn.setAttribute("aria-label", `Delete category ${objCat.name}`);
+        elCatDelBtn.setAttribute(
+            "aria-label",
+            `Delete category ${objCat.name}`,
+        );
         elCatDelBtn.addEventListener("click", async () => {
             const blnOk = await confirmDelete(objCat.name);
             if (!blnOk) return;
@@ -1256,7 +1498,9 @@ function renderSkillsContent(elSection, arrCategories, arrSkills, fnRefreshAll) 
         elCardBody.appendChild(elCatHeader);
 
         // Skills in this category
-        elCardBody.appendChild(buildSkillList(arrCatSkills, arrCategories, fnRefreshAll));
+        elCardBody.appendChild(
+            buildSkillList(arrCatSkills, arrCategories, fnRefreshAll),
+        );
 
         // Add skill to this category
         const elAddSkillForm = document.createElement("form");
@@ -1310,7 +1554,8 @@ function buildSkillList(arrSkillItems, arrCategories, fnRefreshAll) {
     elUl.className = "list-group list-group-flush";
     arrSkillItems.forEach((objSkill) => {
         const elLi = document.createElement("li");
-        elLi.className = "list-group-item d-flex justify-content-between align-items-center px-0 py-1";
+        elLi.className =
+            "list-group-item d-flex justify-content-between align-items-center px-0 py-1";
         const elName = document.createElement("span");
         elName.className = "small";
         elName.textContent = objSkill.name;
@@ -1352,11 +1597,17 @@ async function renderCertsTab(elContainer) {
         fnPost: postCertification,
         fnPut: putCertification,
         fnDelete: deleteCertification,
-        fnGetLabel: (obj) => `${obj.name}${obj.issuer ? " — " + obj.issuer : ""}`,
+        fnGetLabel: (obj) =>
+            `${obj.name}${obj.issuer ? " — " + obj.issuer : ""}`,
         arrFields: [
             { name: "name", label: "Name", type: "text", required: true },
             { name: "issuer", label: "Issuer", type: "text" },
-            { name: "issued_date", label: "Issue Date", type: "text", placeholder: "YYYY-MM" },
+            {
+                name: "issued_date",
+                label: "Issue Date",
+                type: "text",
+                placeholder: "YYYY-MM",
+            },
         ],
     });
 }
@@ -1373,12 +1624,24 @@ async function renderAwardsTab(elContainer) {
         fnPost: postAward,
         fnPut: putAward,
         fnDelete: deleteAward,
-        fnGetLabel: (obj) => `${obj.name}${obj.issuer ? " — " + obj.issuer : ""}`,
+        fnGetLabel: (obj) =>
+            `${obj.name}${obj.issuer ? " — " + obj.issuer : ""}`,
         arrFields: [
             { name: "name", label: "Name", type: "text", required: true },
             { name: "issuer", label: "Issuer", type: "text" },
-            { name: "issued_date", label: "Date", type: "text", placeholder: "YYYY-MM" },
-            { name: "description", label: "Description", type: "textarea", rows: 3, aiReview: "awards" },
+            {
+                name: "issued_date",
+                label: "Date",
+                type: "text",
+                placeholder: "YYYY-MM",
+            },
+            {
+                name: "description",
+                label: "Description",
+                type: "textarea",
+                rows: 3,
+                aiReview: "awards",
+            },
         ],
     });
 }
@@ -1393,16 +1656,19 @@ async function renderAwardsTab(elContainer) {
  * @param {HTMLElement} elContainer
  * @param {object} objConfig
  */
-async function renderCrudTab(elContainer, {
-    strHeading,
-    strSectionLabel,
-    fnGetAll,
-    fnPost,
-    fnPut,
-    fnDelete,
-    fnGetLabel,
-    arrFields,
-}) {
+async function renderCrudTab(
+    elContainer,
+    {
+        strHeading,
+        strSectionLabel,
+        fnGetAll,
+        fnPost,
+        fnPut,
+        fnDelete,
+        fnGetLabel,
+        arrFields,
+    },
+) {
     elContainer.innerHTML = "";
 
     const elSection = document.createElement("section");
@@ -1417,7 +1683,10 @@ async function renderCrudTab(elContainer, {
     try {
         arrItems = await fnGetAll();
     } catch (err) {
-        showError(elSection, `Failed to load ${strHeading.toLowerCase()}: ${err.message}`);
+        showError(
+            elSection,
+            `Failed to load ${strHeading.toLowerCase()}: ${err.message}`,
+        );
         elContainer.appendChild(elSection);
         return;
     }
@@ -1441,11 +1710,16 @@ async function renderCrudTab(elContainer, {
     elAddHeading.textContent = `Add ${strHeading}`;
     elAddBody.appendChild(elAddHeading);
 
-    const elAddForm = buildCrudForm(arrFields, null, async (objData) => {
-        await fnPost(objData);
-        showSuccess(`${strHeading} added.`);
-        await fnRefresh();
-    }, elAddBody);
+    const elAddForm = buildCrudForm(
+        arrFields,
+        null,
+        async (objData) => {
+            await fnPost(objData);
+            showSuccess(`${strHeading} added.`);
+            await fnRefresh();
+        },
+        elAddBody,
+    );
 
     elAddBody.appendChild(elAddForm);
     elAddCard.appendChild(elAddBody);
@@ -1474,11 +1748,16 @@ async function renderCrudTab(elContainer, {
 
             if (intEditingId === objItem.id) {
                 // Show inline edit form
-                const elEditForm = buildCrudForm(arrFields, objItem, async (objData) => {
-                    await fnPut(objItem.id, objData);
-                    showSuccess(`${strHeading} updated.`);
-                    await fnRefresh();
-                }, elLi);
+                const elEditForm = buildCrudForm(
+                    arrFields,
+                    objItem,
+                    async (objData) => {
+                        await fnPut(objItem.id, objData);
+                        showSuccess(`${strHeading} updated.`);
+                        await fnRefresh();
+                    },
+                    elLi,
+                );
                 const elCancelBtn = document.createElement("button");
                 elCancelBtn.type = "button";
                 elCancelBtn.className = "btn btn-sm btn-secondary mt-2";
@@ -1492,7 +1771,8 @@ async function renderCrudTab(elContainer, {
             } else {
                 // Show display row
                 const elRow = document.createElement("div");
-                elRow.className = "d-flex justify-content-between align-items-center";
+                elRow.className =
+                    "d-flex justify-content-between align-items-center";
 
                 const elLabel = document.createElement("span");
                 elLabel.textContent = fnGetLabel(objItem);
@@ -1504,7 +1784,10 @@ async function renderCrudTab(elContainer, {
                 elEditBtn.type = "button";
                 elEditBtn.className = "btn btn-sm btn-outline-secondary";
                 elEditBtn.textContent = "Edit";
-                elEditBtn.setAttribute("aria-label", `Edit ${fnGetLabel(objItem)}`);
+                elEditBtn.setAttribute(
+                    "aria-label",
+                    `Edit ${fnGetLabel(objItem)}`,
+                );
                 elEditBtn.addEventListener("click", () => {
                     intEditingId = objItem.id;
                     renderList();
@@ -1514,7 +1797,10 @@ async function renderCrudTab(elContainer, {
                 elDelBtn.type = "button";
                 elDelBtn.className = "btn btn-sm btn-outline-danger";
                 elDelBtn.textContent = "Delete";
-                elDelBtn.setAttribute("aria-label", `Delete ${fnGetLabel(objItem)}`);
+                elDelBtn.setAttribute(
+                    "aria-label",
+                    `Delete ${fnGetLabel(objItem)}`,
+                );
                 elDelBtn.addEventListener("click", async () => {
                     const blnOk = await confirmDelete(fnGetLabel(objItem));
                     if (!blnOk) return;
@@ -1579,7 +1865,8 @@ function buildCrudForm(arrFields, objInitial, fnOnSubmit, elParent) {
             elInput.type = objField.type ?? "text";
             elInput.className = "form-control form-control-sm";
             elInput.value = objInitial?.[objField.name] ?? "";
-            if (objField.placeholder) elInput.placeholder = objField.placeholder;
+            if (objField.placeholder)
+                elInput.placeholder = objField.placeholder;
         }
 
         elInput.id = strId;
@@ -1615,7 +1902,9 @@ function buildCrudForm(arrFields, objInitial, fnOnSubmit, elParent) {
         });
 
         // Check required fields
-        const strMissingField = arrFields.find((f) => f.required && !objData[f.name]);
+        const strMissingField = arrFields.find(
+            (f) => f.required && !objData[f.name],
+        );
         if (strMissingField) {
             showError(elParent, `${strMissingField.label} is required.`);
             return;

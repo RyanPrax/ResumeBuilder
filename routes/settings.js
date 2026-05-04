@@ -20,7 +20,9 @@ const INT_MAX_KEY_LENGTH = 500;
 router.get("/api-key", (req, res) => {
     try {
         // Always use .all() per project convention, even for singleton rows
-        const arrRows = db.prepare("SELECT gemini_api_key FROM settings WHERE id = 1").all();
+        const arrRows = db
+            .prepare("SELECT gemini_api_key FROM settings WHERE id = 1")
+            .all();
         const strKey = (arrRows[0]?.gemini_api_key ?? "").trim();
         res.status(200).json([{ has_key: strKey.length > 0 }]);
     } catch (err) {
@@ -34,17 +36,24 @@ router.get("/api-key", (req, res) => {
 // Stores a new key. Validates presence and length before writing.
 // ---------------------------------------------------------------------------
 router.put("/api-key", (req, res) => {
-    const strApiKey = typeof req.body.api_key === "string" ? req.body.api_key.trim() : null;
+    const strApiKey =
+        typeof req.body.api_key === "string" ? req.body.api_key.trim() : null;
 
     if (!strApiKey) {
-        return res.status(400).json({ message: "api_key is required and must be a non-empty string" });
+        return res.status(400).json({
+            message: "api_key is required and must be a non-empty string",
+        });
     }
     if (strApiKey.length > INT_MAX_KEY_LENGTH) {
-        return res.status(400).json({ message: `api_key must not exceed ${INT_MAX_KEY_LENGTH} characters` });
+        return res.status(400).json({
+            message: `api_key must not exceed ${INT_MAX_KEY_LENGTH} characters`,
+        });
     }
 
     try {
-        db.prepare("UPDATE settings SET gemini_api_key = ? WHERE id = 1").run(strApiKey);
+        db.prepare("UPDATE settings SET gemini_api_key = ? WHERE id = 1").run(
+            strApiKey,
+        );
         res.status(200).json([{ has_key: true }]);
     } catch (err) {
         console.error("PUT /api/settings/api-key error:", err);
@@ -58,7 +67,9 @@ router.put("/api-key", (req, res) => {
 // ---------------------------------------------------------------------------
 router.delete("/api-key", (req, res) => {
     try {
-        db.prepare("UPDATE settings SET gemini_api_key = '' WHERE id = 1").run();
+        db.prepare(
+            "UPDATE settings SET gemini_api_key = '' WHERE id = 1",
+        ).run();
         res.status(200).json([{ has_key: false }]);
     } catch (err) {
         console.error("DELETE /api/settings/api-key error:", err);

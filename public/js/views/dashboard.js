@@ -4,7 +4,11 @@
 
 import { getResumes, postResume, deleteResume } from "/js/api.js";
 import { navigate } from "/js/app.js";
-import { showError, showSuccess, confirmDelete } from "/js/components/form-helpers.js";
+import {
+    showError,
+    showSuccess,
+    confirmDelete,
+} from "/js/components/form-helpers.js";
 
 // ============================================================
 // Main render function — called by app.js router
@@ -22,7 +26,8 @@ export async function render(_objParams) {
 
     // Page heading + action bar
     const elHeader = document.createElement("div");
-    elHeader.className = "d-flex justify-content-between align-items-center mb-4";
+    elHeader.className =
+        "d-flex justify-content-between align-items-center mb-4";
 
     const elH1 = document.createElement("h1");
     elH1.className = "h3 mb-0";
@@ -104,7 +109,8 @@ async function loadResumeList(elSection) {
         elIcon.setAttribute("aria-hidden", "true");
         elIcon.textContent = "📄";
         const elMsg = document.createElement("p");
-        elMsg.textContent = "No resumes yet. Click “New Resume” to get started.";
+        elMsg.textContent =
+            "No resumes yet. Click “New Resume” to get started.";
         elEmpty.appendChild(elIcon);
         elEmpty.appendChild(elMsg);
         elSection.appendChild(elEmpty);
@@ -152,7 +158,9 @@ function buildResumeCard(objResume, elSection) {
     const elRole = document.createElement("p");
     elRole.className = "card-text text-muted mb-1";
     const elRoleLabel = document.createElement("small");
-    elRoleLabel.textContent = objResume.target_role ? `Target: ${objResume.target_role}` : "No target role set";
+    elRoleLabel.textContent = objResume.target_role
+        ? `Target: ${objResume.target_role}`
+        : "No target role set";
     elRole.appendChild(elRoleLabel);
 
     // Created date
@@ -179,7 +187,10 @@ function buildResumeCard(objResume, elSection) {
     elBuilderBtn.setAttribute("data-spa", "");
     elBuilderBtn.className = "btn btn-sm btn-primary";
     elBuilderBtn.textContent = "Open Builder";
-    elBuilderBtn.setAttribute("aria-label", `Open builder for ${objResume.name}`);
+    elBuilderBtn.setAttribute(
+        "aria-label",
+        `Open builder for ${objResume.name}`,
+    );
 
     // Preview button
     const elPreviewBtn = document.createElement("a");
@@ -303,7 +314,9 @@ function openNewResumeModal(_elSection) {
         clearModalError(elModal);
 
         const strName = document.getElementById("resumeName").value.trim();
-        const strTargetRole = document.getElementById("resumeTargetRole").value.trim();
+        const strTargetRole = document
+            .getElementById("resumeTargetRole")
+            .value.trim();
 
         if (!strName) {
             showModalError(elModal, "Resume name is required.");
@@ -317,7 +330,10 @@ function openNewResumeModal(_elSection) {
         elSubmitBtn.textContent = "Creating…";
 
         try {
-            const objResult = await postResume({ name: strName, target_role: strTargetRole });
+            const objResult = await postResume({
+                name: strName,
+                target_role: strTargetRole,
+            });
             objModal.hide();
             // Navigate to the builder for the newly created resume
             navigate(`/builder/${objResult.id}`);
@@ -329,7 +345,9 @@ function openNewResumeModal(_elSection) {
     });
 
     // Clean up modal DOM after it fully hides
-    elModal.addEventListener("hidden.bs.modal", () => elModal.remove(), { once: true });
+    elModal.addEventListener("hidden.bs.modal", () => elModal.remove(), {
+        once: true,
+    });
 }
 
 /**

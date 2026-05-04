@@ -24,7 +24,9 @@ before(async () => {
     strBaseUrl = `http://127.0.0.1:${port}`;
 
     // Save the existing key so we can restore it after tests complete
-    const arrRows = db.prepare("SELECT gemini_api_key FROM settings WHERE id = 1").all();
+    const arrRows = db
+        .prepare("SELECT gemini_api_key FROM settings WHERE id = 1")
+        .all();
     strSavedApiKey = arrRows[0]?.gemini_api_key ?? "";
 
     // Start with a clean slate so tests are predictable
@@ -33,7 +35,9 @@ before(async () => {
 
 after(async () => {
     // Restore the original key rather than leaving it cleared
-    db.prepare("UPDATE settings SET gemini_api_key = ? WHERE id = 1").run(strSavedApiKey);
+    db.prepare("UPDATE settings SET gemini_api_key = ? WHERE id = 1").run(
+        strSavedApiKey,
+    );
     await new Promise((resolve) => server.close(resolve));
 });
 
@@ -51,7 +55,9 @@ test("GET /api/settings/api-key — returns array with has_key false when no key
 
 test("GET /api/settings/api-key — returns has_key true after a key is stored", async () => {
     // Store a key directly so we can test GET independently
-    db.prepare("UPDATE settings SET gemini_api_key = 'AIzaTestKey123' WHERE id = 1").run();
+    db.prepare(
+        "UPDATE settings SET gemini_api_key = 'AIzaTestKey123' WHERE id = 1",
+    ).run();
 
     const res = await fetch(`${strBaseUrl}/api-key`);
     assert.equal(res.status, 200);
@@ -78,7 +84,9 @@ test("PUT /api/settings/api-key — returns 200 and has_key true on success", as
     assert.equal(arrBody[0].has_key, true);
 
     // Verify it was actually written to the DB
-    const arrRows = db.prepare("SELECT gemini_api_key FROM settings WHERE id = 1").all();
+    const arrRows = db
+        .prepare("SELECT gemini_api_key FROM settings WHERE id = 1")
+        .all();
     assert.equal(arrRows[0].gemini_api_key, "AIzaTestKeyABC");
 
     // Cleanup
@@ -122,7 +130,9 @@ test("PUT /api/settings/api-key — returns 400 when api_key exceeds 500 charact
 
 test("DELETE /api/settings/api-key — clears stored key and returns has_key false", async () => {
     // Pre-store a key to clear
-    db.prepare("UPDATE settings SET gemini_api_key = 'AIzaKeyToDelete' WHERE id = 1").run();
+    db.prepare(
+        "UPDATE settings SET gemini_api_key = 'AIzaKeyToDelete' WHERE id = 1",
+    ).run();
 
     const res = await fetch(`${strBaseUrl}/api-key`, { method: "DELETE" });
     assert.equal(res.status, 200);
@@ -131,7 +141,9 @@ test("DELETE /api/settings/api-key — clears stored key and returns has_key fal
     assert.equal(arrBody[0].has_key, false);
 
     // Verify DB was cleared
-    const arrRows = db.prepare("SELECT gemini_api_key FROM settings WHERE id = 1").all();
+    const arrRows = db
+        .prepare("SELECT gemini_api_key FROM settings WHERE id = 1")
+        .all();
     assert.equal(arrRows[0].gemini_api_key, "");
 });
 
@@ -141,7 +153,9 @@ test("DELETE /api/settings/api-key — clears stored key and returns has_key fal
 
 test("getActiveApiKey — returns DB key when both DB and env are set", () => {
     const strSavedEnv = process.env.GEMINI_API_KEY;
-    db.prepare("UPDATE settings SET gemini_api_key = 'DBKey' WHERE id = 1").run();
+    db.prepare(
+        "UPDATE settings SET gemini_api_key = 'DBKey' WHERE id = 1",
+    ).run();
     process.env.GEMINI_API_KEY = "EnvKey";
 
     const strResult = getActiveApiKey();

@@ -41,7 +41,7 @@ function findChromiumPath() {
 
     throw new Error(
         "No Chrome/Chromium found. Install Chrome or Chromium, or set CHROMIUM_PATH in .env. " +
-        "See docs/special-instructions.md for platform-specific instructions."
+            "See docs/special-instructions.md for platform-specific instructions.",
     );
 }
 
@@ -52,7 +52,9 @@ router.get("/:id", async (req, res) => {
 
     // Validate the id is a positive integer before touching the DB or launching Chrome.
     if (!strId || isNaN(intId) || intId <= 0 || String(intId) !== strId) {
-        return res.status(400).json({ message: "id must be a positive integer" });
+        return res
+            .status(400)
+            .json({ message: "id must be a positive integer" });
     }
 
     try {
@@ -98,10 +100,16 @@ router.get("/:id", async (req, res) => {
             // which then fetches all resume data and renders the DOM.
             // Use 127.0.0.1 explicitly — Chrome inside WSL2 may fail to resolve "localhost".
             const strUrl = `http://127.0.0.1:${getPort()}/preview/${intId}`;
-            await page.goto(strUrl, { waitUntil: "networkidle0", timeout: 30000 });
+            await page.goto(strUrl, {
+                waitUntil: "networkidle0",
+                timeout: 30000,
+            });
 
             // Wait for the resume article to appear — confirms the JS data-fetch finished.
-            await page.waitForSelector(".resume-page", { visible: true, timeout: 15000 });
+            await page.waitForSelector(".resume-page", {
+                visible: true,
+                timeout: 15000,
+            });
 
             // page.pdf() triggers @media print, which applies print.css rules.
             // Margins stay zero here so @page margin in print.css remains the
@@ -113,13 +121,17 @@ router.get("/:id", async (req, res) => {
             });
 
             // Sanitize the resume name for use as a filename.
-            const strFilename = strResumeName
-                .replace(/[^a-zA-Z0-9 _-]/g, "")
-                .replace(/\s+/g, "_")
-                .trim() || "resume";
+            const strFilename =
+                strResumeName
+                    .replace(/[^a-zA-Z0-9 _-]/g, "")
+                    .replace(/\s+/g, "_")
+                    .trim() || "resume";
 
             res.setHeader("Content-Type", "application/pdf");
-            res.setHeader("Content-Disposition", `attachment; filename="${strFilename}.pdf"`);
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${strFilename}.pdf"`,
+            );
             res.setHeader("Content-Length", bufPdf.length);
             res.status(200).send(Buffer.from(bufPdf));
         } finally {

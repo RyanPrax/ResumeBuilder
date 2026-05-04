@@ -18,9 +18,15 @@
 async function request(strUrl, objOptions = {}) {
     // Default Content-Type to application/json for POST/PUT requests that
     // send a body, unless the caller has already set different headers.
-    const objHeaders = { "Content-Type": "application/json", ...(objOptions.headers ?? {}) };
+    const objHeaders = {
+        "Content-Type": "application/json",
+        ...(objOptions.headers ?? {}),
+    };
 
-    const objResponse = await fetch(strUrl, { ...objOptions, headers: objHeaders });
+    const objResponse = await fetch(strUrl, {
+        ...objOptions,
+        headers: objHeaders,
+    });
 
     // Try to parse the JSON body regardless of status code — the server sends
     // useful error messages in the body even for 4xx/5xx responses.
@@ -29,12 +35,17 @@ async function request(strUrl, objOptions = {}) {
         objBody = await objResponse.json();
     } catch {
         // Body is empty or not JSON — construct a minimal error object
-        objBody = { message: `HTTP ${objResponse.status} ${objResponse.statusText}` };
+        objBody = {
+            message: `HTTP ${objResponse.status} ${objResponse.statusText}`,
+        };
     }
 
     if (!objResponse.ok) {
         // Surface the server's error message so the UI can display it
-        throw new Error(objBody.message ?? `Request failed with status ${objResponse.status}`);
+        throw new Error(
+            objBody.message ??
+                `Request failed with status ${objResponse.status}`,
+        );
     }
 
     return objBody;
@@ -66,11 +77,17 @@ export async function getSummaries() {
 }
 
 export async function postSummary(objData) {
-    return request("/api/summary", { method: "POST", body: JSON.stringify(objData) });
+    return request("/api/summary", {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putSummary(intId, objData) {
-    return request(`/api/summary/${intId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/summary/${intId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteSummary(intId) {
@@ -86,11 +103,17 @@ export async function getEducations() {
 }
 
 export async function postEducation(objData) {
-    return request("/api/educations", { method: "POST", body: JSON.stringify(objData) });
+    return request("/api/educations", {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putEducation(intId, objData) {
-    return request(`/api/educations/${intId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/educations/${intId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteEducation(intId) {
@@ -106,11 +129,17 @@ export async function getJobs() {
 }
 
 export async function postJob(objData) {
-    return request("/api/jobs", { method: "POST", body: JSON.stringify(objData) });
+    return request("/api/jobs", {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putJob(intId, objData) {
-    return request(`/api/jobs/${intId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/jobs/${intId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteJob(intId) {
@@ -124,15 +153,23 @@ export async function getJobBullets(intJobId) {
 }
 
 export async function postJobBullet(intJobId, objData) {
-    return request(`/api/jobs/${intJobId}/bullets`, { method: "POST", body: JSON.stringify(objData) });
+    return request(`/api/jobs/${intJobId}/bullets`, {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putJobBullet(intJobId, intBulletId, objData) {
-    return request(`/api/jobs/${intJobId}/bullets/${intBulletId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/jobs/${intJobId}/bullets/${intBulletId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteJobBullet(intJobId, intBulletId) {
-    return request(`/api/jobs/${intJobId}/bullets/${intBulletId}`, { method: "DELETE" });
+    return request(`/api/jobs/${intJobId}/bullets/${intBulletId}`, {
+        method: "DELETE",
+    });
 }
 
 // ============================================================
@@ -144,11 +181,17 @@ export async function getProjects() {
 }
 
 export async function postProject(objData) {
-    return request("/api/projects", { method: "POST", body: JSON.stringify(objData) });
+    return request("/api/projects", {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putProject(intId, objData) {
-    return request(`/api/projects/${intId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/projects/${intId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteProject(intId) {
@@ -162,15 +205,23 @@ export async function getProjectBullets(intProjectId) {
 }
 
 export async function postProjectBullet(intProjectId, objData) {
-    return request(`/api/projects/${intProjectId}/bullets`, { method: "POST", body: JSON.stringify(objData) });
+    return request(`/api/projects/${intProjectId}/bullets`, {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putProjectBullet(intProjectId, intBulletId, objData) {
-    return request(`/api/projects/${intProjectId}/bullets/${intBulletId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/projects/${intProjectId}/bullets/${intBulletId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteProjectBullet(intProjectId, intBulletId) {
-    return request(`/api/projects/${intProjectId}/bullets/${intBulletId}`, { method: "DELETE" });
+    return request(`/api/projects/${intProjectId}/bullets/${intBulletId}`, {
+        method: "DELETE",
+    });
 }
 
 // ============================================================
@@ -182,11 +233,17 @@ export async function getSkillCategories() {
 }
 
 export async function postSkillCategory(objData) {
-    return request("/api/skill-categories", { method: "POST", body: JSON.stringify(objData) });
+    return request("/api/skill-categories", {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putSkillCategory(intId, objData) {
-    return request(`/api/skill-categories/${intId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/skill-categories/${intId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteSkillCategory(intId) {
@@ -202,11 +259,17 @@ export async function getSkills() {
 }
 
 export async function postSkill(objData) {
-    return request("/api/skills", { method: "POST", body: JSON.stringify(objData) });
+    return request("/api/skills", {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putSkill(intId, objData) {
-    return request(`/api/skills/${intId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/skills/${intId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteSkill(intId) {
@@ -222,11 +285,17 @@ export async function getCertifications() {
 }
 
 export async function postCertification(objData) {
-    return request("/api/certifications", { method: "POST", body: JSON.stringify(objData) });
+    return request("/api/certifications", {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putCertification(intId, objData) {
-    return request(`/api/certifications/${intId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/certifications/${intId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteCertification(intId) {
@@ -242,11 +311,17 @@ export async function getAwards() {
 }
 
 export async function postAward(objData) {
-    return request("/api/awards", { method: "POST", body: JSON.stringify(objData) });
+    return request("/api/awards", {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putAward(intId, objData) {
-    return request(`/api/awards/${intId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/awards/${intId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteAward(intId) {
@@ -266,11 +341,17 @@ export async function getResume(intId) {
 }
 
 export async function postResume(objData) {
-    return request("/api/resumes", { method: "POST", body: JSON.stringify(objData) });
+    return request("/api/resumes", {
+        method: "POST",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function putResume(intId, objData) {
-    return request(`/api/resumes/${intId}`, { method: "PUT", body: JSON.stringify(objData) });
+    return request(`/api/resumes/${intId}`, {
+        method: "PUT",
+        body: JSON.stringify(objData),
+    });
 }
 
 export async function deleteResume(intId) {

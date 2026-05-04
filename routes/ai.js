@@ -88,14 +88,20 @@ const ALLOWED_SECTION_TYPES = new Set([
 ]);
 
 router.post("/review", async (req, res) => {
-    const sectionType = typeof req.body.sectionType === "string" ? req.body.sectionType.trim() : null;
-    const text = typeof req.body.text === "string" ? req.body.text.trim() : null;
+    const sectionType =
+        typeof req.body.sectionType === "string"
+            ? req.body.sectionType.trim()
+            : null;
+    const text =
+        typeof req.body.text === "string" ? req.body.text.trim() : null;
 
     if (!sectionType) {
         return res.status(400).json({ message: "sectionType is required" });
     }
     if (!ALLOWED_SECTION_TYPES.has(sectionType)) {
-        return res.status(400).json({ message: `Invalid sectionType: ${sectionType}` });
+        return res
+            .status(400)
+            .json({ message: `Invalid sectionType: ${sectionType}` });
     }
     if (!text) {
         return res.status(400).json({ message: "text is required" });
@@ -106,13 +112,21 @@ router.post("/review", async (req, res) => {
     // so as not to reveal which pattern was matched.
     const strInjectionReason = detectInjection(text);
     if (strInjectionReason) {
-        console.warn("POST /api/ai/review — injection attempt blocked:", strInjectionReason);
-        return res.status(400).json({ message: "Input contains disallowed content" });
+        console.warn(
+            "POST /api/ai/review — injection attempt blocked:",
+            strInjectionReason,
+        );
+        return res
+            .status(400)
+            .json({ message: "Input contains disallowed content" });
     }
 
     // Check DB-stored key first, then fall back to env — mirrors getActiveApiKey() priority logic
     if (!getActiveApiKey()) {
-        return res.status(400).json({ message: "AI review is not available — GEMINI_API_KEY is not configured" });
+        return res.status(400).json({
+            message:
+                "AI review is not available — GEMINI_API_KEY is not configured",
+        });
     }
 
     try {

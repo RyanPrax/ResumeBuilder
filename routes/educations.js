@@ -14,7 +14,9 @@ const router = Router();
 
 router.get("/", (req, res) => {
     try {
-        const arrEducations = db.prepare("SELECT * FROM educations ORDER BY sort_order").all();
+        const arrEducations = db
+            .prepare("SELECT * FROM educations ORDER BY sort_order")
+            .all();
         res.status(200).json(arrEducations);
     } catch (err) {
         console.error("GET /api/educations error:", err);
@@ -52,9 +54,22 @@ router.post("/", (req, res) => {
     }
     try {
         const result = db
-            .prepare("INSERT INTO educations (institution, degree, field, start_date, end_date, gpa, details) VALUES (@institution, @degree, @field, @start_date, @end_date, @gpa, @details)")
-            .run({ institution, degree, field, start_date, end_date, gpa, details });
-        res.status(201).json({ message: "Education created successfully", id: result.lastInsertRowid });
+            .prepare(
+                "INSERT INTO educations (institution, degree, field, start_date, end_date, gpa, details) VALUES (@institution, @degree, @field, @start_date, @end_date, @gpa, @details)",
+            )
+            .run({
+                institution,
+                degree,
+                field,
+                start_date,
+                end_date,
+                gpa,
+                details,
+            });
+        res.status(201).json({
+            message: "Education created successfully",
+            id: result.lastInsertRowid,
+        });
     } catch (err) {
         console.error("POST /api/educations error:", err);
         res.status(500).json({ message: "Failed to create education" });
@@ -80,8 +95,20 @@ router.put("/:id", (req, res) => {
     }
     try {
         const result = db
-            .prepare("UPDATE educations SET institution = @institution, degree = @degree, field = @field, start_date = @start_date, end_date = @end_date, gpa = @gpa, details = @details, sort_order = @sort_order WHERE id = @id")
-            .run({ institution, degree, field, start_date, end_date, gpa, details, sort_order, id });
+            .prepare(
+                "UPDATE educations SET institution = @institution, degree = @degree, field = @field, start_date = @start_date, end_date = @end_date, gpa = @gpa, details = @details, sort_order = @sort_order WHERE id = @id",
+            )
+            .run({
+                institution,
+                degree,
+                field,
+                start_date,
+                end_date,
+                gpa,
+                details,
+                sort_order,
+                id,
+            });
         if (result.changes === 0) {
             return res.status(404).json({ message: "Education not found" });
         }
@@ -101,8 +128,12 @@ router.delete("/:id", (req, res) => {
         // Use a transaction so resume selection cleanup and the education delete are atomic.
         // resume_items is polymorphic and has no FK cascade from educations.
         const deleteEducation = db.transaction(() => {
-            db.prepare("DELETE FROM resume_items WHERE section_type = 'education' AND item_id = @id").run({ id });
-            return db.prepare("DELETE FROM educations WHERE id = @id").run({ id });
+            db.prepare(
+                "DELETE FROM resume_items WHERE section_type = 'education' AND item_id = @id",
+            ).run({ id });
+            return db
+                .prepare("DELETE FROM educations WHERE id = @id")
+                .run({ id });
         });
         const result = deleteEducation();
         if (result.changes === 0) {

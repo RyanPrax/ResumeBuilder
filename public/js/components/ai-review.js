@@ -33,7 +33,10 @@ export function createAiReviewButton(elInput, strSectionType) {
     elBtn.type = "button";
     elBtn.className = "btn btn-sm btn-outline-primary";
     elBtn.textContent = "Review with AI";
-    elBtn.setAttribute("aria-label", "Review this text with AI and show suggestions");
+    elBtn.setAttribute(
+        "aria-label",
+        "Review this text with AI and show suggestions",
+    );
 
     elBtn.addEventListener("click", async () => {
         const strText = elInput.value.trim();
@@ -42,8 +45,18 @@ export function createAiReviewButton(elInput, strSectionType) {
         elBtn.disabled = true;
 
         if (!strText) {
-            showPopover(elBtn, "Please enter some text first before requesting a review.", false);
-            elBtn.addEventListener("hidden.bs.popover", () => { elBtn.disabled = false; }, { once: true });
+            showPopover(
+                elBtn,
+                "Please enter some text first before requesting a review.",
+                false,
+            );
+            elBtn.addEventListener(
+                "hidden.bs.popover",
+                () => {
+                    elBtn.disabled = false;
+                },
+                { once: true },
+            );
             return;
         }
 
@@ -56,18 +69,32 @@ export function createAiReviewButton(elInput, strSectionType) {
             // The API returns { suggestions: string[] }
             const arrSuggestions = objResult.suggestions ?? [];
             if (arrSuggestions.length === 0) {
-                showPopover(elBtn, "No suggestions returned. The text looks good!", false);
+                showPopover(
+                    elBtn,
+                    "No suggestions returned. The text looks good!",
+                    false,
+                );
             } else {
                 showPopover(elBtn, arrSuggestions, true);
             }
         } catch (err) {
             // Surface the server's error message (e.g. missing API key)
-            showPopover(elBtn, err.message ?? "AI review failed. Please try again.", false);
+            showPopover(
+                elBtn,
+                err.message ?? "AI review failed. Please try again.",
+                false,
+            );
         } finally {
             elBtn.removeAttribute("aria-busy");
             elBtn.textContent = strOrigText;
             // Re-enable once the popover is dismissed (or on navigation via closeAllAiPopovers)
-            elBtn.addEventListener("hidden.bs.popover", () => { elBtn.disabled = false; }, { once: true });
+            elBtn.addEventListener(
+                "hidden.bs.popover",
+                () => {
+                    elBtn.disabled = false;
+                },
+                { once: true },
+            );
         }
     });
 
@@ -103,7 +130,11 @@ const arrActivePopovers = [];
 function closeAllAiPopovers() {
     // Iterate a copy since hiding may trigger splice inside hidden.bs.popover listener
     [...arrActivePopovers].forEach((objPop) => {
-        try { objPop.hide(); } catch { /* already disposed — ignore */ }
+        try {
+            objPop.hide();
+        } catch {
+            /* already disposed — ignore */
+        }
     });
     // Clear immediately in case hidden.bs.popover doesn't fire (e.g. anchor removed from DOM)
     arrActivePopovers.length = 0;
@@ -142,7 +173,8 @@ function showPopover(elAnchor, content, blnIsList) {
     } else {
         // Plain text — escape via a temporary text node
         const elSpan = document.createElement("span");
-        elSpan.textContent = typeof content === "string" ? content : content.join(" ");
+        elSpan.textContent =
+            typeof content === "string" ? content : content.join(" ");
         strHtmlContent = elSpan.outerHTML;
     }
 
@@ -181,8 +213,12 @@ function showPopover(elAnchor, content, blnIsList) {
     }, 50);
 
     // Remove from tracking array when hidden so memory doesn't accumulate
-    elAnchor.addEventListener("hidden.bs.popover", () => {
-        const intIdx = arrActivePopovers.indexOf(objPopover);
-        if (intIdx !== -1) arrActivePopovers.splice(intIdx, 1);
-    }, { once: true });
+    elAnchor.addEventListener(
+        "hidden.bs.popover",
+        () => {
+            const intIdx = arrActivePopovers.indexOf(objPopover);
+            if (intIdx !== -1) arrActivePopovers.splice(intIdx, 1);
+        },
+        { once: true },
+    );
 }

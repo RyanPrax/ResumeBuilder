@@ -170,7 +170,8 @@ async function renderView(strPathname, blnMoveFocus = false) {
         const elErr = document.createElement("div");
         elErr.className = "alert alert-danger mt-4";
         elErr.setAttribute("role", "alert");
-        elErr.textContent = "An error occurred while loading this page. Please try again.";
+        elErr.textContent =
+            "An error occurred while loading this page. Please try again.";
         elRoot.appendChild(elErr);
     }
 }
@@ -211,7 +212,13 @@ document.addEventListener("click", (objEvent) => {
     if (!elTarget || elTarget === document) return; // Not a SPA link
 
     // Let modified clicks (Ctrl+click, middle-click, etc.) open in a new tab normally
-    if (objEvent.metaKey || objEvent.ctrlKey || objEvent.shiftKey || objEvent.altKey) return;
+    if (
+        objEvent.metaKey ||
+        objEvent.ctrlKey ||
+        objEvent.shiftKey ||
+        objEvent.altKey
+    )
+        return;
     if (objEvent.button !== 0) return; // Not a left click
 
     objEvent.preventDefault();

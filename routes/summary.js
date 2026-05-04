@@ -15,7 +15,9 @@ const router = Router();
 
 router.get("/", (req, res) => {
     try {
-        const arrSummaries = db.prepare("SELECT * FROM summaries ORDER BY sort_order").all();
+        const arrSummaries = db
+            .prepare("SELECT * FROM summaries ORDER BY sort_order")
+            .all();
         res.status(200).json(arrSummaries);
     } catch (err) {
         console.error("GET /api/summary error:", err);
@@ -44,9 +46,14 @@ router.post("/", (req, res) => {
     const content = (req.body.content ?? "").trim();
     try {
         const result = db
-            .prepare("INSERT INTO summaries (label, content) VALUES (@label, @content)")
+            .prepare(
+                "INSERT INTO summaries (label, content) VALUES (@label, @content)",
+            )
             .run({ label, content });
-        res.status(201).json({ message: "Summary created successfully", id: result.lastInsertRowid });
+        res.status(201).json({
+            message: "Summary created successfully",
+            id: result.lastInsertRowid,
+        });
     } catch (err) {
         console.error("POST /api/summary error:", err);
         res.status(500).json({ message: "Failed to create summary" });
@@ -64,7 +71,9 @@ router.put("/:id", (req, res) => {
     }
     try {
         const result = db
-            .prepare("UPDATE summaries SET label = @label, content = @content, sort_order = @sort_order WHERE id = @id")
+            .prepare(
+                "UPDATE summaries SET label = @label, content = @content, sort_order = @sort_order WHERE id = @id",
+            )
             .run({ label, content, sort_order, id });
         if (result.changes === 0) {
             return res.status(404).json({ message: "Summary not found" });
@@ -85,8 +94,12 @@ router.delete("/:id", (req, res) => {
         // Use a transaction so resume selection cleanup and the summary delete are atomic.
         // resume_items is polymorphic and has no FK cascade from summaries.
         const deleteSummary = db.transaction(() => {
-            db.prepare("DELETE FROM resume_items WHERE section_type = 'summary' AND item_id = @id").run({ id });
-            return db.prepare("DELETE FROM summaries WHERE id = @id").run({ id });
+            db.prepare(
+                "DELETE FROM resume_items WHERE section_type = 'summary' AND item_id = @id",
+            ).run({ id });
+            return db
+                .prepare("DELETE FROM summaries WHERE id = @id")
+                .run({ id });
         });
         const result = deleteSummary();
         if (result.changes === 0) {

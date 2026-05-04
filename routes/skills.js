@@ -14,7 +14,9 @@ const router = Router();
 
 router.get("/", (req, res) => {
     try {
-        const arrSkills = db.prepare("SELECT * FROM skills ORDER BY sort_order").all();
+        const arrSkills = db
+            .prepare("SELECT * FROM skills ORDER BY sort_order")
+            .all();
         res.status(200).json(arrSkills);
     } catch (err) {
         console.error("GET /api/skills error:", err);
@@ -49,15 +51,24 @@ router.post("/", (req, res) => {
     try {
         // Verify category_id exists before inserting — gives a friendlier 404 than a DB constraint error
         if (category_id !== null) {
-            const arrCat = db.prepare("SELECT id FROM skill_categories WHERE id = @id").all({ id: category_id });
+            const arrCat = db
+                .prepare("SELECT id FROM skill_categories WHERE id = @id")
+                .all({ id: category_id });
             if (arrCat.length === 0) {
-                return res.status(404).json({ message: "Skill category not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Skill category not found" });
             }
         }
         const result = db
-            .prepare("INSERT INTO skills (name, category_id) VALUES (@name, @category_id)")
+            .prepare(
+                "INSERT INTO skills (name, category_id) VALUES (@name, @category_id)",
+            )
             .run({ name, category_id });
-        res.status(201).json({ message: "Skill created successfully", id: result.lastInsertRowid });
+        res.status(201).json({
+            message: "Skill created successfully",
+            id: result.lastInsertRowid,
+        });
     } catch (err) {
         console.error("POST /api/skills error:", err);
         res.status(500).json({ message: "Failed to create skill" });
@@ -79,13 +90,19 @@ router.put("/:id", (req, res) => {
     try {
         // Verify category_id exists before updating — gives a friendlier 404 than a DB constraint error
         if (category_id !== null) {
-            const arrCat = db.prepare("SELECT id FROM skill_categories WHERE id = @id").all({ id: category_id });
+            const arrCat = db
+                .prepare("SELECT id FROM skill_categories WHERE id = @id")
+                .all({ id: category_id });
             if (arrCat.length === 0) {
-                return res.status(404).json({ message: "Skill category not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Skill category not found" });
             }
         }
         const result = db
-            .prepare("UPDATE skills SET name = @name, category_id = @category_id, sort_order = @sort_order WHERE id = @id")
+            .prepare(
+                "UPDATE skills SET name = @name, category_id = @category_id, sort_order = @sort_order WHERE id = @id",
+            )
             .run({ name, category_id, sort_order, id });
         if (result.changes === 0) {
             return res.status(404).json({ message: "Skill not found" });
@@ -106,7 +123,9 @@ router.delete("/:id", (req, res) => {
         // Use a transaction so resume selection cleanup and the skill delete are atomic.
         // resume_items is polymorphic and has no FK cascade from skills.
         const deleteSkill = db.transaction(() => {
-            db.prepare("DELETE FROM resume_items WHERE section_type = 'skills' AND item_id = @id").run({ id });
+            db.prepare(
+                "DELETE FROM resume_items WHERE section_type = 'skills' AND item_id = @id",
+            ).run({ id });
             return db.prepare("DELETE FROM skills WHERE id = @id").run({ id });
         });
         const result = deleteSkill();

@@ -17,7 +17,9 @@
 export function readForm(elForm) {
     const objData = {};
     // querySelectorAll returns all form controls with a name attribute
-    const arrInputs = elForm.querySelectorAll("input[name], textarea[name], select[name]");
+    const arrInputs = elForm.querySelectorAll(
+        "input[name], textarea[name], select[name]",
+    );
     arrInputs.forEach((elInput) => {
         const strName = elInput.getAttribute("name");
         if (elInput.type === "checkbox") {
@@ -72,7 +74,8 @@ export function showError(elContainer, strMessage) {
     if (elExisting) elExisting.remove();
 
     const elAlert = document.createElement("div");
-    elAlert.className = "alert alert-danger alert-dismissible fade show js-form-error";
+    elAlert.className =
+        "alert alert-danger alert-dismissible fade show js-form-error";
     elAlert.setAttribute("role", "alert");
 
     // Use textContent so the message can't inject HTML (XSS prevention)
@@ -117,7 +120,8 @@ export function showSuccess(strMessage) {
     if (!elContainer) {
         elContainer = document.createElement("div");
         elContainer.id = "toast-container";
-        elContainer.className = "toast-container position-fixed bottom-0 end-0 p-3";
+        elContainer.className =
+            "toast-container position-fixed bottom-0 end-0 p-3";
         elContainer.setAttribute("aria-live", "polite");
         elContainer.setAttribute("aria-atomic", "true");
         document.body.appendChild(elContainer);
@@ -251,10 +255,14 @@ export function confirmDelete(strItemLabel) {
             objModal.hide();
         });
 
-        elModal.addEventListener("hidden.bs.modal", () => {
-            elModal.remove();
-            resolve(blnConfirmed);
-        }, { once: true });
+        elModal.addEventListener(
+            "hidden.bs.modal",
+            () => {
+                elModal.remove();
+                resolve(blnConfirmed);
+            },
+            { once: true },
+        );
     });
 }
 
@@ -273,7 +281,8 @@ export function confirmDelete(strItemLabel) {
  */
 export function buildListItem(strLabel, fnOnEdit, fnOnDelete) {
     const elLi = document.createElement("li");
-    elLi.className = "list-group-item d-flex justify-content-between align-items-center";
+    elLi.className =
+        "list-group-item d-flex justify-content-between align-items-center";
 
     // Text node for the label — safe, uses textContent via DOM
     const elSpan = document.createElement("span");

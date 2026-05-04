@@ -16,7 +16,9 @@ let intTestCategoryId = null;
 
 before(async () => {
     // Create a real category so we can test both valid and invalid category_id paths.
-    const result = db.prepare("INSERT INTO skill_categories (name) VALUES (@name)").run({ name: "Test Category for Skills" });
+    const result = db
+        .prepare("INSERT INTO skill_categories (name) VALUES (@name)")
+        .run({ name: "Test Category for Skills" });
     intTestCategoryId = result.lastInsertRowid;
 
     const app = express();
@@ -30,10 +32,14 @@ before(async () => {
 after(async () => {
     await new Promise((resolve) => server.close(resolve));
     if (intTestSkillId !== null) {
-        db.prepare("DELETE FROM skills WHERE id = @id").run({ id: intTestSkillId });
+        db.prepare("DELETE FROM skills WHERE id = @id").run({
+            id: intTestSkillId,
+        });
     }
     if (intTestCategoryId !== null) {
-        db.prepare("DELETE FROM skill_categories WHERE id = @id").run({ id: intTestCategoryId });
+        db.prepare("DELETE FROM skill_categories WHERE id = @id").run({
+            id: intTestCategoryId,
+        });
     }
 });
 
@@ -140,7 +146,10 @@ test("PUT /api/skills/:id — returns 200 when assigning a valid category_id", a
     const res = await fetch(`${strBaseUrl}/${intTestSkillId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Updated Skill", category_id: intTestCategoryId }),
+        body: JSON.stringify({
+            name: "Updated Skill",
+            category_id: intTestCategoryId,
+        }),
     });
     assert.equal(res.status, 200);
 });
@@ -154,23 +163,48 @@ test("DELETE /api/skills/:id — returns 404 for unknown id", async () => {
 
 test("DELETE /api/skills/:id — removes orphaned resume_items rows", async () => {
     // Insert a fresh skill and a resume selection pointing at it
-    const objSkill = db.prepare("INSERT INTO skills (name) VALUES (@name)").run({ name: "Orphan Test Skill" });
+    const objSkill = db
+        .prepare("INSERT INTO skills (name) VALUES (@name)")
+        .run({ name: "Orphan Test Skill" });
     const intSkillId = objSkill.lastInsertRowid;
-    const objResume = db.prepare("INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)").run({ name: "Orphan Test Resume", target_role: "" });
+    const objResume = db
+        .prepare(
+            "INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)",
+        )
+        .run({ name: "Orphan Test Resume", target_role: "" });
     const intResumeId = objResume.lastInsertRowid;
-    db.prepare("INSERT INTO resume_items (resume_id, section_type, item_id, sort_order) VALUES (@resume_id, @section_type, @item_id, @sort_order)").run({ resume_id: intResumeId, section_type: "skills", item_id: intSkillId, sort_order: 0 });
+    db.prepare(
+        "INSERT INTO resume_items (resume_id, section_type, item_id, sort_order) VALUES (@resume_id, @section_type, @item_id, @sort_order)",
+    ).run({
+        resume_id: intResumeId,
+        section_type: "skills",
+        item_id: intSkillId,
+        sort_order: 0,
+    });
 
-    const res = await fetch(`${strBaseUrl}/${intSkillId}`, { method: "DELETE" });
+    const res = await fetch(`${strBaseUrl}/${intSkillId}`, {
+        method: "DELETE",
+    });
     assert.equal(res.status, 200);
 
-    const arrOrphans = db.prepare("SELECT id FROM resume_items WHERE section_type = 'skills' AND item_id = @item_id").all({ item_id: intSkillId });
-    assert.equal(arrOrphans.length, 0, "resume_items row must be removed when skill is deleted");
+    const arrOrphans = db
+        .prepare(
+            "SELECT id FROM resume_items WHERE section_type = 'skills' AND item_id = @item_id",
+        )
+        .all({ item_id: intSkillId });
+    assert.equal(
+        arrOrphans.length,
+        0,
+        "resume_items row must be removed when skill is deleted",
+    );
 
     db.prepare("DELETE FROM resumes WHERE id = @id").run({ id: intResumeId });
 });
 
 test("DELETE /api/skills/:id — returns 200 and removes the record", async () => {
-    const res = await fetch(`${strBaseUrl}/${intTestSkillId}`, { method: "DELETE" });
+    const res = await fetch(`${strBaseUrl}/${intTestSkillId}`, {
+        method: "DELETE",
+    });
     assert.equal(res.status, 200);
     intTestSkillId = null;
 });

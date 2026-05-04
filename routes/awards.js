@@ -108,7 +108,9 @@ router.delete("/:id", (req, res) => {
         // Use a transaction so resume selection cleanup and the award delete are atomic.
         // resume_items is polymorphic and has no FK cascade from awards.
         const deleteAward = db.transaction(() => {
-            db.prepare("DELETE FROM resume_items WHERE section_type = 'awards' AND item_id = @id").run({ id });
+            db.prepare(
+                "DELETE FROM resume_items WHERE section_type = 'awards' AND item_id = @id",
+            ).run({ id });
             return db.prepare("DELETE FROM awards WHERE id = @id").run({ id });
         });
         const result = deleteAward();

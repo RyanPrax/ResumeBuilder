@@ -2,13 +2,19 @@
 // Loads saved resume selections and renders a digital resume layout.
 
 import {
-    getResume, getResumeSelections,
+    getResume,
+    getResumeSelections,
     getContact,
-    getSummaries, getEducations,
-    getJobs, getJobBullets,
-    getProjects, getProjectBullets,
-    getSkills, getSkillCategories,
-    getCertifications, getAwards,
+    getSummaries,
+    getEducations,
+    getJobs,
+    getJobBullets,
+    getProjects,
+    getProjectBullets,
+    getSkills,
+    getSkillCategories,
+    getCertifications,
+    getAwards,
 } from "/js/api.js";
 import { showError } from "/js/components/form-helpers.js";
 
@@ -61,11 +67,14 @@ export async function render(objParams) {
         // If no sections have been saved yet, show all sections.
         const blnHasSavedSections = objSelections.sections.length > 0;
         const setSectionIncluded = new Set(
-            objSelections.sections.filter((s) => s.included === 1).map((s) => s.section_type)
+            objSelections.sections
+                .filter((s) => s.included === 1)
+                .map((s) => s.section_type),
         );
 
         // Helper: should a given section be shown in the preview?
-        const isSectionShown = (strType) => !blnHasSavedSections || setSectionIncluded.has(strType);
+        const isSectionShown = (strType) =>
+            !blnHasSavedSections || setSectionIncluded.has(strType);
 
         // Build a map of selected items per section: sectionType → Set<itemId>
         const mapSelectedItems = {};
@@ -78,7 +87,9 @@ export async function render(objParams) {
 
         // Build a set of selected bullet keys: "bulletType:parentItemId:bulletId"
         const setSelectedBullets = new Set(
-            objSelections.bullets.map((b) => `${b.bullet_type}:${b.parent_item_id}:${b.bullet_id}`)
+            objSelections.bullets.map(
+                (b) => `${b.bullet_type}:${b.parent_item_id}:${b.bullet_id}`,
+            ),
         );
 
         // Helper: filter an items array to only the selected entries, in selection order.
@@ -98,9 +109,13 @@ export async function render(objParams) {
                 .map((s) => s.item_id);
 
             // Filter to only selected IDs, then sort by selection order
-            const arrSelected = arrAllItems.filter((item) => setIds.has(item.id));
+            const arrSelected = arrAllItems.filter((item) =>
+                setIds.has(item.id),
+            );
             arrSelected.sort(
-                (a, b) => arrSelectionOrder.indexOf(a.id) - arrSelectionOrder.indexOf(b.id)
+                (a, b) =>
+                    arrSelectionOrder.indexOf(a.id) -
+                    arrSelectionOrder.indexOf(b.id),
             );
             return arrSelected;
         };
@@ -118,27 +133,34 @@ export async function render(objParams) {
             arrAwards,
         ] = await Promise.all([
             getContact(),
-            isSectionShown("summary")        ? getSummaries()       : Promise.resolve([]),
-            isSectionShown("education")      ? getEducations()      : Promise.resolve([]),
-            isSectionShown("jobs")           ? getJobs()            : Promise.resolve([]),
-            isSectionShown("projects")       ? getProjects()        : Promise.resolve([]),
-            isSectionShown("skills")         ? getSkillCategories() : Promise.resolve([]),
-            isSectionShown("skills")         ? getSkills()          : Promise.resolve([]),
-            isSectionShown("certifications") ? getCertifications()  : Promise.resolve([]),
-            isSectionShown("awards")         ? getAwards()          : Promise.resolve([]),
+            isSectionShown("summary") ? getSummaries() : Promise.resolve([]),
+            isSectionShown("education") ? getEducations() : Promise.resolve([]),
+            isSectionShown("jobs") ? getJobs() : Promise.resolve([]),
+            isSectionShown("projects") ? getProjects() : Promise.resolve([]),
+            isSectionShown("skills")
+                ? getSkillCategories()
+                : Promise.resolve([]),
+            isSectionShown("skills") ? getSkills() : Promise.resolve([]),
+            isSectionShown("certifications")
+                ? getCertifications()
+                : Promise.resolve([]),
+            isSectionShown("awards") ? getAwards() : Promise.resolve([]),
         ]);
 
         const objContact = arrContact[0] ?? {};
 
         // Filter each library list to only the selected items
-        const arrFilteredSummaries  = filterItems("summary",        arrSummaries);
-        const arrFilteredEducations = filterItems("education",      arrEducations);
-        const arrFilteredSkills     = filterItems("skills",         arrSkills);
-        const arrFilteredCerts      = filterItems("certifications", arrCertifications);
-        const arrFilteredAwards     = filterItems("awards",         arrAwards);
+        const arrFilteredSummaries = filterItems("summary", arrSummaries);
+        const arrFilteredEducations = filterItems("education", arrEducations);
+        const arrFilteredSkills = filterItems("skills", arrSkills);
+        const arrFilteredCerts = filterItems(
+            "certifications",
+            arrCertifications,
+        );
+        const arrFilteredAwards = filterItems("awards", arrAwards);
 
         // For jobs and projects, also filter bullets per item
-        const arrSelectedJobs     = filterItems("jobs",     arrJobs);
+        const arrSelectedJobs = filterItems("jobs", arrJobs);
         const arrSelectedProjects = filterItems("projects", arrProjects);
 
         // Fetch and filter bullets only for the jobs/projects that are selected
@@ -148,11 +170,11 @@ export async function render(objParams) {
                 // Keep only the bullets the user selected in the builder
                 const arrBullets = blnHasItemSelections
                     ? arrAllBullets.filter((b) =>
-                        setSelectedBullets.has(`job:${objJob.id}:${b.id}`)
-                    )
+                          setSelectedBullets.has(`job:${objJob.id}:${b.id}`),
+                      )
                     : arrAllBullets;
                 return { ...objJob, bullets: arrBullets };
-            })
+            }),
         );
 
         const arrProjectsWithBullets = await Promise.all(
@@ -160,29 +182,27 @@ export async function render(objParams) {
                 const arrAllBullets = await getProjectBullets(objProject.id);
                 const arrBullets = blnHasItemSelections
                     ? arrAllBullets.filter((b) =>
-                        setSelectedBullets.has(`project:${objProject.id}:${b.id}`)
-                    )
+                          setSelectedBullets.has(
+                              `project:${objProject.id}:${b.id}`,
+                          ),
+                      )
                     : arrAllBullets;
                 return { ...objProject, bullets: arrBullets };
-            })
+            }),
         );
 
         // Clear spinner and render the preview
         elRoot.innerHTML = "";
-        renderPreviewUI(
-            elRoot, intId, objResume, objContact,
-            isSectionShown,
-            {
-                summaries:       arrFilteredSummaries,
-                educations:      arrFilteredEducations,
-                jobs:            arrJobsWithBullets,
-                projects:        arrProjectsWithBullets,
-                skillCategories: arrSkillCategories,
-                skills:          arrFilteredSkills,
-                certifications:  arrFilteredCerts,
-                awards:          arrFilteredAwards,
-            }
-        );
+        renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, {
+            summaries: arrFilteredSummaries,
+            educations: arrFilteredEducations,
+            jobs: arrJobsWithBullets,
+            projects: arrProjectsWithBullets,
+            skillCategories: arrSkillCategories,
+            skills: arrFilteredSkills,
+            certifications: arrFilteredCerts,
+            awards: arrFilteredAwards,
+        });
     } catch (err) {
         console.error("Preview render error:", err);
         elRoot.innerHTML = "";
@@ -215,11 +235,18 @@ export function cleanup() {
  * @param {Function} isSectionShown - (strType) → boolean
  * @param {object} objData - filtered library data
  */
-function renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, objData) {
-
+function renderPreviewUI(
+    elRoot,
+    intId,
+    objResume,
+    objContact,
+    isSectionShown,
+    objData,
+) {
     // ---- Action bar (hidden when printing) ----
     const elActionBar = document.createElement("div");
-    elActionBar.className = "resume-preview-actions d-flex justify-content-between align-items-center mb-3 no-print flex-wrap gap-2";
+    elActionBar.className =
+        "resume-preview-actions d-flex justify-content-between align-items-center mb-3 no-print flex-wrap gap-2";
 
     const elResumeTitle = document.createElement("h1");
     elResumeTitle.className = "h3 mb-0";
@@ -241,7 +268,10 @@ function renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, o
     elDownloadLink.download = `${objResume.name || "resume"}.pdf`;
     elDownloadLink.className = "btn btn-primary";
     elDownloadLink.textContent = "Download PDF";
-    elDownloadLink.setAttribute("aria-label", "Download this resume as a PDF file (server-generated)");
+    elDownloadLink.setAttribute(
+        "aria-label",
+        "Download this resume as a PDF file (server-generated)",
+    );
 
     const elBtnGroup = document.createElement("div");
     elBtnGroup.className = "d-flex gap-2";
@@ -270,8 +300,13 @@ function renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, o
     // Render each optional section in the resume order from the template:
     // Skills → Experience → Projects → Certs/Awards → Education (per r/EngineeringResumes)
     const arrSectionOrder = [
-        "summary", "skills", "jobs", "projects",
-        "certifications", "awards", "education",
+        "summary",
+        "skills",
+        "jobs",
+        "projects",
+        "certifications",
+        "awards",
+        "education",
     ];
 
     arrSectionOrder.forEach((strType) => {
@@ -289,21 +324,23 @@ function renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, o
         // 11in at 96 dpi = 1056 px — matches the repeating-linear-gradient period in print.css.
         const intOnePagePx = Math.round(11 * 96);
         const intContentPx = elPage.scrollHeight;
-        const intNumPages  = Math.ceil(intContentPx / intOnePagePx);
+        const intNumPages = Math.ceil(intContentPx / intOnePagePx);
 
         // ---- Page-length warning (above the resume) ----
         const elPrev = elRoot.querySelector(".resume-page-warning");
         if (elPrev) elPrev.remove();
 
         let strMessage = null;
-        let strLevel   = null;
+        let strLevel = null;
 
         if (intContentPx > intOnePagePx * 2) {
-            strMessage = "Resume exceeds 2 pages — trim before printing. Resumes over 2 pages are rarely read.";
-            strLevel   = "danger";
+            strMessage =
+                "Resume exceeds 2 pages — trim before printing. Resumes over 2 pages are rarely read.";
+            strLevel = "danger";
         } else if (intContentPx > intOnePagePx) {
-            strMessage = "Resume spans 2 pages. Recommended only with 10+ years of experience.";
-            strLevel   = "warning";
+            strMessage =
+                "Resume spans 2 pages. Recommended only with 10+ years of experience.";
+            strLevel = "warning";
         }
 
         if (strMessage) {
@@ -316,7 +353,9 @@ function renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, o
 
         // ---- Page break overlays (inside the resume article, hidden when printing) ----
         // Remove stale overlays from a previous render.
-        elPage.querySelectorAll(".page-break-overlay").forEach((el) => el.remove());
+        elPage
+            .querySelectorAll(".page-break-overlay")
+            .forEach((el) => el.remove());
 
         // For each page boundary (every 11in), insert an absolutely-positioned row that
         // labels "Page N ↑ / ↓ Page N+1" centred on the gradient line drawn by print.css.
@@ -327,7 +366,8 @@ function renderPreviewUI(elRoot, intId, objResume, objContact, isSectionShown, o
             const elOverlay = document.createElement("div");
             // no-print hides the overlay in @media print (and in the Puppeteer PDF).
             // position-absolute + w-100 stretches the row across the full paper width.
-            elOverlay.className = "page-break-overlay no-print position-absolute start-0 w-100 d-flex align-items-center justify-content-between";
+            elOverlay.className =
+                "page-break-overlay no-print position-absolute start-0 w-100 d-flex align-items-center justify-content-between";
             // Inline top is unavoidable — the pixel position is computed at runtime and
             // cannot be expressed with Bootstrap utility classes. Subtract 12px to
             // vertically centre the badges on the 2px gradient line drawn at intBreakY.
@@ -376,13 +416,16 @@ function buildContactSection(objContact) {
     const elContactLine = document.createElement("p");
     elContactLine.className = "mb-2";
 
-    const arrLinks = Array.isArray(objContact.links_json) ? objContact.links_json : [];
+    const arrLinks = Array.isArray(objContact.links_json)
+        ? objContact.links_json
+        : [];
     let blnFirst = true;
 
     // Helper appends " | " separator before each item after the first.
     const appendContactItem = (strText) => {
         if (!strText) return;
-        if (!blnFirst) elContactLine.appendChild(document.createTextNode(" | "));
+        if (!blnFirst)
+            elContactLine.appendChild(document.createTextNode(" | "));
         blnFirst = false;
         elContactLine.appendChild(document.createTextNode(strText));
     };
@@ -414,14 +457,22 @@ function buildContactSection(objContact) {
  */
 function buildSection(strType, objData) {
     switch (strType) {
-        case "summary":        return buildSummarySection(objData.summaries);
-        case "education":      return buildEducationSection(objData.educations);
-        case "jobs":           return buildJobsSection(objData.jobs);
-        case "projects":       return buildProjectsSection(objData.projects);
-        case "skills":         return buildSkillsSection(objData.skills, objData.skillCategories);
-        case "certifications": return buildCertificationsSection(objData.certifications);
-        case "awards":         return buildAwardsSection(objData.awards);
-        default:               return null;
+        case "summary":
+            return buildSummarySection(objData.summaries);
+        case "education":
+            return buildEducationSection(objData.educations);
+        case "jobs":
+            return buildJobsSection(objData.jobs);
+        case "projects":
+            return buildProjectsSection(objData.projects);
+        case "skills":
+            return buildSkillsSection(objData.skills, objData.skillCategories);
+        case "certifications":
+            return buildCertificationsSection(objData.certifications);
+        case "awards":
+            return buildAwardsSection(objData.awards);
+        default:
+            return null;
     }
 }
 
@@ -492,7 +543,8 @@ function buildEducationSection(arrEducations) {
         // One row: "Institution – Degree in Field" on left, graduation date on right.
         // Matches template format: "School – MS in Aerospace Engineering   June 2006"
         const elRow1 = document.createElement("div");
-        elRow1.className = "d-flex justify-content-between align-items-baseline";
+        elRow1.className =
+            "d-flex justify-content-between align-items-baseline";
 
         // Build left label: institution, then " – degree in field" if present
         let strEduLeft = objEdu.institution ?? "";
@@ -556,7 +608,8 @@ function buildJobsSection(arrJobs) {
         // Template format: "**Job Title,** Company – City, ST [right-aligned date]"
         // Only the job title is bold; company and location are normal weight.
         const elRow1 = document.createElement("div");
-        elRow1.className = "d-flex justify-content-between align-items-baseline";
+        elRow1.className =
+            "d-flex justify-content-between align-items-baseline";
 
         // Build the title line with mixed bold/normal content
         const elTitleLine = document.createElement("span");
@@ -574,7 +627,11 @@ function buildJobsSection(arrJobs) {
         if (strRest) elTitleLine.appendChild(document.createTextNode(strRest));
 
         const elDates = document.createElement("span");
-        elDates.textContent = formatDateRange(objJob.start_date, objJob.end_date, objJob.is_current === 1);
+        elDates.textContent = formatDateRange(
+            objJob.start_date,
+            objJob.end_date,
+            objJob.is_current === 1,
+        );
         elRow1.appendChild(elTitleLine);
         elRow1.appendChild(elDates);
         elItem.appendChild(elRow1);
@@ -616,7 +673,8 @@ function buildProjectsSection(arrProjects) {
 
         // Project name (linked if a URL is stored) + date range
         const elRow1 = document.createElement("div");
-        elRow1.className = "d-flex justify-content-between align-items-baseline";
+        elRow1.className =
+            "d-flex justify-content-between align-items-baseline";
 
         const elNameEl = document.createElement("strong");
         if (objProject.link) {
@@ -633,7 +691,9 @@ function buildProjectsSection(arrProjects) {
 
         const elDates = document.createElement("span");
         elDates.textContent = formatDateRange(
-            objProject.start_date, objProject.end_date, objProject.is_current === 1
+            objProject.start_date,
+            objProject.end_date,
+            objProject.is_current === 1,
         );
 
         elRow1.appendChild(elNameEl);
@@ -683,7 +743,7 @@ function buildSkillsSection(arrSkills, arrCategories) {
 
     // Group skill names by category_id
     const mapCategorySkills = {};
-    const arrUncategorized  = [];
+    const arrUncategorized = [];
 
     arrSkills.forEach((objSkill) => {
         if (objSkill.category_id) {
@@ -742,7 +802,7 @@ function buildCertificationsSection(arrCerts) {
         const elLi = document.createElement("li");
         // Build the display string: "Name — Issuer — Date"
         const arrParts = [objCert.name];
-        if (objCert.issuer)      arrParts.push(objCert.issuer);
+        if (objCert.issuer) arrParts.push(objCert.issuer);
         if (objCert.issued_date) arrParts.push(objCert.issued_date);
         elLi.textContent = arrParts.join(" — ");
         elUl.appendChild(elLi);
@@ -770,7 +830,7 @@ function buildAwardsSection(arrAwards) {
     arrAwards.forEach((objAward) => {
         const elLi = document.createElement("li");
         const arrParts = [objAward.name];
-        if (objAward.issuer)      arrParts.push(objAward.issuer);
+        if (objAward.issuer) arrParts.push(objAward.issuer);
         if (objAward.issued_date) arrParts.push(objAward.issued_date);
         elLi.textContent = arrParts.join(" — ");
 
