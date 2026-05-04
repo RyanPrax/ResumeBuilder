@@ -12,6 +12,7 @@ import db from "../lib/db.js";
 
 let server;
 let strBaseUrl;
+let strSavedApiKey;
 
 before(async () => {
     const app = express();
@@ -22,13 +23,17 @@ before(async () => {
     const { port } = server.address();
     strBaseUrl = `http://127.0.0.1:${port}`;
 
-    // Ensure the settings row exists and starts clean for this test run
+    // Save the existing key so we can restore it after tests complete
+    const arrRows = db.prepare("SELECT gemini_api_key FROM settings WHERE id = 1").all();
+    strSavedApiKey = arrRows[0]?.gemini_api_key ?? "";
+
+    // Start with a clean slate so tests are predictable
     db.prepare("UPDATE settings SET gemini_api_key = '' WHERE id = 1").run();
 });
 
 after(async () => {
-    // Leave DB in clean state for other test files
-    db.prepare("UPDATE settings SET gemini_api_key = '' WHERE id = 1").run();
+    // Restore the original key rather than leaving it cleared
+    db.prepare("UPDATE settings SET gemini_api_key = ? WHERE id = 1").run(strSavedApiKey);
     await new Promise((resolve) => server.close(resolve));
 });
 
