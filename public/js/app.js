@@ -125,6 +125,10 @@ async function renderView(strPathname, blnMoveFocus = false) {
         return;
     }
 
+    // Notify components (e.g. ai-review.js) that navigation is occurring so they
+    // can close any open popovers and re-enable their trigger buttons.
+    document.dispatchEvent(new CustomEvent("resume-frog:navigate"));
+
     // Run cleanup on the current view if it exported one
     if (objCurrentView && typeof objCurrentView.cleanup === "function") {
         objCurrentView.cleanup();

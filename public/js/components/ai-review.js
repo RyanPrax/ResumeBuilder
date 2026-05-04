@@ -6,41 +6,47 @@
 import { postAiReview } from "/js/api.js";
 
 // ============================================================
-// Main exported function
+// Navigation cleanup
+// ============================================================
+
+// Close all open AI popovers (and re-enable their buttons) whenever the SPA
+// navigates to a new view. app.js dispatches this event inside renderView.
+document.addEventListener("resume-frog:navigate", () => {
+    closeAllAiPopovers();
+});
+
+// ============================================================
+// Main exported functions
 // ============================================================
 
 /**
- * Attach a "Review with AI" button immediately after the given textarea.
- * When clicked, sends the textarea's current value to /api/ai/review and
- * shows the suggestions in a dismissable popover anchored to the button.
+ * Create a "Review with AI" button wired to the given input/textarea.
+ * Does NOT insert the button into the DOM — the caller decides placement.
+ * The button is disabled while its popover is visible and re-enabled when dismissed.
  *
- * @param {HTMLTextAreaElement} elTextarea - the prose textarea to review
+ * @param {HTMLInputElement|HTMLTextAreaElement} elInput - the field whose text will be reviewed
  * @param {string} strSectionType - e.g. "summary", "jobs" — passed to the API
+ * @returns {HTMLButtonElement}
  */
-export function attachAiReview(elTextarea, strSectionType) {
-    // Create the trigger button and insert it right after the textarea
+export function createAiReviewButton(elInput, strSectionType) {
     const elBtn = document.createElement("button");
     elBtn.type = "button";
-    elBtn.className = "btn btn-sm btn-outline-primary mt-1";
+    elBtn.className = "btn btn-sm btn-outline-primary";
     elBtn.textContent = "Review with AI";
     elBtn.setAttribute("aria-label", "Review this text with AI and show suggestions");
 
-    // Insert after the textarea in the DOM
-    elTextarea.insertAdjacentElement("afterend", elBtn);
-
-    // --------------------------------------------------------
-    // Click handler — calls API and shows popover
-    // --------------------------------------------------------
     elBtn.addEventListener("click", async () => {
-        const strText = elTextarea.value.trim();
+        const strText = elInput.value.trim();
+
+        // Disable for all paths that show a popover (re-enabled on hidden.bs.popover)
+        elBtn.disabled = true;
+
         if (!strText) {
-            // Nothing to review — show a brief inline note
             showPopover(elBtn, "Please enter some text first before requesting a review.", false);
+            elBtn.addEventListener("hidden.bs.popover", () => { elBtn.disabled = false; }, { once: true });
             return;
         }
 
-        // Show loading state on button while waiting for response
-        elBtn.disabled = true;
         elBtn.setAttribute("aria-busy", "true");
         const strOrigText = elBtn.textContent;
         elBtn.textContent = "Reviewing…";
@@ -58,27 +64,65 @@ export function attachAiReview(elTextarea, strSectionType) {
             // Surface the server's error message (e.g. missing API key)
             showPopover(elBtn, err.message ?? "AI review failed. Please try again.", false);
         } finally {
-            elBtn.disabled = false;
             elBtn.removeAttribute("aria-busy");
             elBtn.textContent = strOrigText;
+            // Re-enable once the popover is dismissed (or on navigation via closeAllAiPopovers)
+            elBtn.addEventListener("hidden.bs.popover", () => { elBtn.disabled = false; }, { once: true });
         }
     });
+
+    return elBtn;
+}
+
+/**
+ * Attach a "Review with AI" button immediately after the given textarea.
+ * Uses createAiReviewButton internally; adds mt-1 for block-level placement.
+ *
+ * @param {HTMLTextAreaElement} elTextarea - the prose textarea to review
+ * @param {string} strSectionType - e.g. "summary", "jobs"
+ */
+export function attachAiReview(elTextarea, strSectionType) {
+    const elBtn = createAiReviewButton(elTextarea, strSectionType);
+    elBtn.classList.add("mt-1");
+    elTextarea.insertAdjacentElement("afterend", elBtn);
 }
 
 // ============================================================
 // Popover helper
 // ============================================================
 
+// Tracks all currently visible AI popovers so we can close stale ones
+// when a new review is triggered on a different field, or on navigation.
+const arrActivePopovers = [];
+
+/**
+ * Hide and clean up all currently open AI review popovers.
+ * Calling hide() fires hidden.bs.popover on each anchor, which re-enables
+ * the corresponding button via the once listener added in createAiReviewButton.
+ */
+function closeAllAiPopovers() {
+    // Iterate a copy since hiding may trigger splice inside hidden.bs.popover listener
+    [...arrActivePopovers].forEach((objPop) => {
+        try { objPop.hide(); } catch { /* already disposed — ignore */ }
+    });
+    // Clear immediately in case hidden.bs.popover doesn't fire (e.g. anchor removed from DOM)
+    arrActivePopovers.length = 0;
+}
+
 /**
  * Show a Bootstrap popover on the given element.
- * Destroys any previously open popover on the same element first.
+ * Closes any other open AI popovers first so only one is visible at a time.
+ * Persists until the user clicks the Dismiss button — no click-outside dismissal.
  *
  * @param {HTMLElement} elAnchor - element to anchor the popover to
  * @param {string | string[]} content - plain text message, or array of suggestion strings
  * @param {boolean} blnIsList - true → render content as a bulleted list
  */
 function showPopover(elAnchor, content, blnIsList) {
-    // Destroy existing popover so clicks don't stack
+    // Close any other open AI review popovers
+    closeAllAiPopovers();
+
+    // Destroy any existing popover on this same anchor so we start fresh
     const elExisting = bootstrap.Popover.getInstance(elAnchor);
     if (elExisting) elExisting.dispose();
 
@@ -109,12 +153,19 @@ function showPopover(elAnchor, content, blnIsList) {
         content: strHtmlContent,
         html: true,
         trigger: "manual",
+        // Always place below the button (which sits after the textarea) so the
+        // popover never overlaps the text being reviewed. Flip disabled to
+        // prevent Bootstrap from reversing direction when near the viewport bottom.
         placement: "bottom",
         sanitize: false, // We built the HTML safely above using DOM APIs
         title: "AI Suggestions",
+        popperConfig: {
+            modifiers: [{ name: "flip", enabled: false }],
+        },
     });
 
     objPopover.show();
+    arrActivePopovers.push(objPopover);
 
     // Wire the dismiss button inside the popover (it's added to the DOM by Bootstrap)
     // Use a brief timeout to wait for the popover DOM to be ready
@@ -129,18 +180,9 @@ function showPopover(elAnchor, content, blnIsList) {
         }
     }, 50);
 
-    // Also auto-dismiss when the user clicks outside the popover
-    const fnClickOutside = (objEvent) => {
-        if (!elAnchor.contains(objEvent.target) && !document.querySelector(".popover")?.contains(objEvent.target)) {
-            objPopover.hide();
-            document.removeEventListener("click", fnClickOutside);
-        }
-    };
-    // Small delay so the current click that triggered the popover doesn't immediately close it
-    setTimeout(() => document.addEventListener("click", fnClickOutside), 100);
-
-    // Clean up the listener when the popover is hidden
+    // Remove from tracking array when hidden so memory doesn't accumulate
     elAnchor.addEventListener("hidden.bs.popover", () => {
-        document.removeEventListener("click", fnClickOutside);
+        const intIdx = arrActivePopovers.indexOf(objPopover);
+        if (intIdx !== -1) arrActivePopovers.splice(intIdx, 1);
     }, { once: true });
 }
