@@ -1,1 +1,234 @@
-/* Custom print stylesheet (flagged); @media print rules for letter-size resume layout, hides app chrome, ATS-friendly typography, page-break rules. */
+/* AI: Generated with Claude Code — custom print stylesheet for ResumeBuilder.
+   Permitted exception per CLAUDE.md: print/preview layout cannot be achieved
+   with Bootstrap utilities alone. Flagged in implementation_plan.md. */
+
+/* ============================================================
+   On-screen preview mode — wrapped in @media screen so these
+   styles are physically isolated from the @media print block.
+   Without this isolation, body.print-preview rules (specificity
+   0,2,0) could beat @media print rules (specificity 0,1,0) and
+   leak screen-only styles into the Puppeteer PDF.
+   ============================================================ */
+
+@media screen {
+
+    body.print-preview {
+        background-color: #e9ecef;
+    }
+
+    body.print-preview #main-content {
+        /* Strip Bootstrap container constraints so page sheets center freely */
+        max-width: none;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* Outer wrapper — stacks page sheets vertically with breathing room */
+    body.print-preview .resume-preview {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        padding: 2rem 0;
+    }
+
+    /* Each page renders as a letter-size paper sheet on the grey background.
+       Keep height flexible until JS pagination splits content into separate
+       pages; otherwise an unfinished paginator clips multi-page resumes. */
+    body.print-preview .resume-page {
+        width: min(8.5in, calc(100vw - 2rem));
+        min-height: 11in;
+        padding: 0.4in 0.5in;
+        box-sizing: border-box;
+        position: relative;
+        overflow: visible;
+        background: white;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+        font-family: Calibri, Arial, sans-serif;
+        font-size: 11pt;
+        line-height: 1.15;
+        color: #000;
+    }
+
+    /* Name — 24pt normal weight per template */
+    body.print-preview .resume-contact h1 {
+        font-size: 24pt;
+        font-weight: normal;
+    }
+
+    /* Section headings — 12.5pt normal weight, bottom border matches template */
+    body.print-preview .resume-section h2 {
+        font-size: 12.5pt;
+        font-weight: normal;
+    }
+
+}
+
+/* ============================================================
+   Print media query
+   Controls the actual printed output in @media print (Puppeteer PDF export).
+   @media screen above has no effect here.
+   ============================================================ */
+
+@media print {
+
+    /* ---- Page setup ---- */
+    @page {
+        size: letter;
+        /* Per-page margins ensure page 2+ gets the same top/bottom spacing.
+           Element padding only applies at the start/end of a fragmented element. */
+        margin: 0.4in 0.5in;
+    }
+
+    /* ---- Reset body for print ---- */
+    body {
+        background: white !important;
+        color: black !important;
+        font-family: Calibri, Arial, sans-serif !important;
+        font-size: 11pt !important;
+        line-height: 1.15 !important;
+    }
+
+    /* ---- Hide all app chrome ---- */
+    /* Header / navbar, footer, action bars, toasts, modals, and any element
+       explicitly marked no-print are hidden so only the resume content prints. */
+    header.navbar,
+    footer,
+    .no-print,
+    .navbar,
+    .toast-container,
+    .modal,
+    .modal-backdrop,
+    button,
+    .btn {
+        display: none !important;
+    }
+
+    /* ---- Full-width main content ---- */
+    /* Bootstrap container adds padding/max-width — override for print.
+       outline: none removes the Chromium focus ring that app.js sets on
+       #main-content after SPA navigation; without it the ring appears as a
+       visible box around the resume in Puppeteer-generated PDFs. */
+    #main-content,
+    main,
+    .container,
+    .container-fluid {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        outline: none !important;
+    }
+
+    /* ---- Resume wrapper ---- */
+    .resume-preview {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        background: white !important;
+    }
+
+    /* ---- Resume pages ---- */
+    /* Let @page provide print margins so multi-page resumes get consistent
+       spacing at every page boundary. Screen padding remains in @media screen. */
+    .resume-page {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        background: white !important;
+        font-family: Calibri, Arial, sans-serif !important;
+        font-size: 11pt !important;
+        color: black !important;
+        break-after: page;
+    }
+
+    .resume-page:last-child {
+        break-after: auto;
+    }
+
+    /* ---- Name ---- */
+    .resume-contact h1 {
+        font-size: 24pt !important;
+        font-weight: normal !important;
+        color: black !important;
+    }
+
+    /* ---- Section headings ---- */
+    .resume-section h2 {
+        font-size: 12.5pt !important;
+        font-weight: normal !important;
+        color: black !important;
+        page-break-after: avoid;
+    }
+
+    /* ---- General heading color reset ---- */
+    h1, h2, h3, h4, h5, h6 {
+        color: black !important;
+    }
+
+    /* ---- Links ---- */
+    a {
+        color: black !important;
+        text-decoration: none;
+    }
+
+    /* Show raw URLs in print so recruiters can read them from a paper copy */
+    a[href]:not([href^="#"]):not([data-spa])::after {
+        content: " (" attr(href) ")";
+        font-size: 9pt;
+        color: #444;
+    }
+
+    /* Suppress URL display for internal SPA links and anchors */
+    a[data-spa]::after,
+    a[href^="#"]::after {
+        content: none !important;
+    }
+
+    /* ---- Page break rules within each page ---- */
+    /* Do NOT put page-break-inside: avoid on the whole section — a long
+       Work Experience with many bullets can never fit on one page, so the
+       browser would leave a huge blank gap and push the whole section to
+       the next page. Avoid breaks only on individual entries so each
+       job/project/item stays together but sections can span pages. */
+    .resume-section > div {
+        page-break-inside: avoid;
+    }
+
+    /* Keep the section heading attached to the first item below it */
+    .resume-section h2 {
+        page-break-after: avoid;
+    }
+
+    .resume-contact {
+        page-break-after: avoid;
+    }
+
+    /* ---- Bootstrap utility overrides for print ---- */
+    .shadow, .shadow-sm, .shadow-lg {
+        box-shadow: none !important;
+    }
+    .bg-white, .bg-light, .bg-dark, .bg-primary, .bg-secondary {
+        background-color: white !important;
+    }
+    .text-muted {
+        color: #333 !important;
+    }
+    .border, .border-bottom, .border-top {
+        border-color: #999 !important;
+    }
+
+    /* ---- Visibility helpers ---- */
+    .visually-hidden,
+    .visually-hidden-focusable:not(:focus) {
+        display: none !important;
+    }
+
+}
