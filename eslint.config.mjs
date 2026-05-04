@@ -25,13 +25,24 @@ export default [
         },
     },
 
-    // Browser frontend: public/js/ — browser globals only
+    // Browser frontend: public/js/ — browser globals + vendored Bootstrap
     {
         files: ["public/js/**/*.js"],
         languageOptions: {
-            globals: globals.browser,
+            globals: {
+                ...globals.browser,
+                // Bootstrap is loaded globally from public/vendor/bootstrap.bundle.min.js
+                bootstrap: "readonly",
+            },
             ecmaVersion: 2022,
             sourceType: "module",
+        },
+        rules: {
+            // Allow unused parameters and variables prefixed with _ (intentional no-ops)
+            "no-unused-vars": ["error", {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_",
+            }],
         },
     },
 

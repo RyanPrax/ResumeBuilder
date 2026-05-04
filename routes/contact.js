@@ -16,7 +16,9 @@ router.get("/", (req, res) => {
         res.status(200).json(arrContact);
     } catch (err) {
         console.error("GET /api/contact error:", err);
-        res.status(500).json({ message: "Failed to retrieve contact information" });
+        res.status(500).json({
+            message: "Failed to retrieve contact information",
+        });
     }
 });
 

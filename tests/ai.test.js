@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import express from "express";
 import router from "../routes/ai.js";
+import db from "../lib/db.js";
 
 let server;
 let strBaseUrl;
@@ -137,8 +138,13 @@ test("POST /api/ai/review — blocks text exceeding maximum length", async () =>
 
 test("POST /api/ai/review — allows legitimate resume prose through injection check", async () => {
     // This should pass the injection check and reach the API key gate (no key set in test env).
+    // Also clear the DB key so getActiveApiKey() finds nothing and hits the 400 gate.
     const strSavedKey = process.env.GEMINI_API_KEY;
+    const strSavedDbKey =
+        db.prepare("SELECT gemini_api_key FROM settings WHERE id = 1").get()
+            ?.gemini_api_key ?? "";
     delete process.env.GEMINI_API_KEY;
+    db.prepare("UPDATE settings SET gemini_api_key = '' WHERE id = 1").run();
 
     const res = await fetch(`${strBaseUrl}/review`, {
         method: "POST",
@@ -152,6 +158,11 @@ test("POST /api/ai/review — allows legitimate resume prose through injection c
     if (strSavedKey !== undefined) {
         process.env.GEMINI_API_KEY = strSavedKey;
     }
+    if (strSavedDbKey) {
+        db.prepare("UPDATE settings SET gemini_api_key = ? WHERE id = 1").run(
+            strSavedDbKey,
+        );
+    }
 
     // Legitimate text passes injection check and hits the API key gate
     assert.equal(res.status, 400);
@@ -164,10 +175,13 @@ test("POST /api/ai/review — allows legitimate resume prose through injection c
 // ---------------------------------------------------------------------------
 
 test("POST /api/ai/review — returns 400 when GEMINI_API_KEY is not configured", async () => {
-    // Temporarily clear the key to simulate an unconfigured environment.
-    // Store and restore so other tests are not affected.
+    // Temporarily clear both the env key and the DB key to simulate fully unconfigured AI.
     const strSavedKey = process.env.GEMINI_API_KEY;
+    const strSavedDbKey =
+        db.prepare("SELECT gemini_api_key FROM settings WHERE id = 1").get()
+            ?.gemini_api_key ?? "";
     delete process.env.GEMINI_API_KEY;
+    db.prepare("UPDATE settings SET gemini_api_key = '' WHERE id = 1").run();
 
     const res = await fetch(`${strBaseUrl}/review`, {
         method: "POST",
@@ -175,9 +189,14 @@ test("POST /api/ai/review — returns 400 when GEMINI_API_KEY is not configured"
         body: JSON.stringify({ sectionType: "summary", text: "Some text." }),
     });
 
-    // Restore key before any assertions so a test failure does not leave it unset.
+    // Restore before any assertions so a test failure does not leave them unset.
     if (strSavedKey !== undefined) {
         process.env.GEMINI_API_KEY = strSavedKey;
+    }
+    if (strSavedDbKey) {
+        db.prepare("UPDATE settings SET gemini_api_key = ? WHERE id = 1").run(
+            strSavedDbKey,
+        );
     }
 
     assert.equal(res.status, 400);

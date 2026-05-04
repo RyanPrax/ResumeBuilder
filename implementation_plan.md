@@ -1,27 +1,27 @@
-# ResumeBuilder — Implementation Plan
+# Resume Frog — Implementation Plan
 
 ## Context
 
 CSC3100 final assignment: build a local SPA that helps students draft tailored resumes. Users persist a library of jobs/skills/certs/awards/etc., then pick which items go on a given resume targeted at a specific role. Gemini AI reviews user-entered prose. Output is a digital view + printable PDF. Stack is locked by the assignment doc (`CSC3100Final-ResumeBuilder.md`)
 
-This plan covers the scaffolding, data model, API, SPA structure, AI integration, PDF export, PWA wrapper, and accessibility pass needed to satisfy the rubric.
+This plan covers the scaffolding, data model, API, SPA structure, AI integration, PDF export, and accessibility pass needed to satisfy the rubric.
 
 ---
 
-PDF export **Phase 1: browser `window.print()` + `@media print` CSS.** Re-evaluate if fidelity insufficient.
+PDF export: server-side Puppeteer (`routes/pdf.js`). `GET /api/pdf/:id` renders the preview headlessly and streams a PDF.
 
 AI review trigger: **On-demand "Review" button** per field/section.
 Resume sections: Contact info **required**; Summary, Education, Jobs, Projects, Skills, Certifications, Awards all **optional and dynamic** per resume.
 
 Saved resumes: **Named resume records** persisted in SQLite (history of generated resumes with selections).
-Gemini key storage **`.env` only.** 
+Gemini key storage: **DB singleton `settings` table takes priority; `.env` GEMINI_API_KEY is fallback.** UI widget on profile page top-right lets users paste and save their own key via `PUT /api/settings/api-key`.
 
 ---
 
 ## Important things to note
 
 - assignment requires UI for user-supplied Gemini key.
-- accessability measured by Lighthouse a11y ≥ 93, manual UX pass, and consistent Bootstrap utility usage.
+- accessability measured by Lighthouse a11y ≥ 93, manual UX pass, and consistent Bootstrap utility usage plus flagged theme CSS.
 - **App name + iconography**: finalize before submission; placeholder used during dev.
 - **"Special instructions"**: produced as part of README in final submission step.
 
@@ -44,9 +44,11 @@ Gemini key storage **`.env` only.**
 Single-user local app — no auth.
 
 ```
--- Singleton (always one row, id=1)
+-- Singletons (always one row, id=1)
 contact            (id, full_name, email, phone, location, links_json, updated_at)
                    -- CHECK (id = 1); links_json is JSON array of {label,url}
+settings           (id, gemini_api_key, updated_at)
+                   -- CHECK (id = 1); gemini_api_key defaults to '' (empty = use .env fallback)
 
 -- Summary library (non-singleton — store multiple variants, pick one per resume)
 summaries          (id, label, content, sort_order, updated_at)
@@ -116,7 +118,7 @@ Single `public/index.html` with skeleton: skip-link, `<header>`, `<main id="view
 1. **Dashboard** — list of saved resumes + "New resume" + "Edit profile data".
 2. **Profile** — tabbed forms for each entity (contact, summary, education, jobs, projects, skills, certs, awards). Each tab has list + add/edit/delete + reorder.
 3. **Builder** — given a resume id: name + target role inputs, then a checklist tree (sections → items → bullets). "Review with AI" buttons attached to long-form text areas.
-4. **Preview** — digital render of the resume using selections. "Print / Save as PDF" button triggers `window.print()`.
+4. **Preview** — digital render of the resume using selections. "Download PDF" button hits `GET /api/pdf/:id` (Puppeteer).
 5. **Credits modal** — list of vendored libraries (Bootstrap, better-sqlite3, dotenv, @google/generative-ai). attribution required.
 
 **Routing:** History API with real URL paths (`/dashboard`, `/profile/jobs`, `/builder/:id`, `/preview/:id`). Single `app.js` intercepts `<a data-spa>` clicks, calls `history.pushState`, listens for `popstate`, and dispatches to view modules. Programmatic transitions after API calls use a `navigate(path)` helper exported from `app.js`. Express adds a catch-all that returns `public/index.html` for any non-`/api` path so refreshes and deep links resolve to the SPA shell. The link-click interceptor honors new-tab modifiers (`Ctrl`/`Cmd`/`Shift`/middle-click, `target="_blank"`) so users keep native browser behaviors.
@@ -126,7 +128,6 @@ Single `public/index.html` with skeleton: skip-link, `<header>`, `<main id="view
 public/js/
   app.js              router + bootstrap
   api.js              thin fetch helpers
-  pwa.js              service worker register + install prompt
   views/
     dashboard.js
     profile.js
@@ -141,27 +142,18 @@ public/js/
 
 ## AI integration
 
-- `routes/ai.js`: `POST /api/ai/review` → reads `process.env.GEMINI_API_KEY`, calls Gemini via `@google/generative-ai`. Prompt template per section type (e.g., "Review this resume bullet for impact, action verbs, quantified results: {text}. Return 2-3 concise suggestions.").
+- `routes/ai.js`: `POST /api/ai/review` → calls `getActiveApiKey()` (DB key priority, env fallback), then calls Gemini via `@google/generative-ai`. Prompt template per section type (e.g., "Review this resume bullet for impact, action verbs, quantified results: {text}. Return 2-3 concise suggestions.").
 - Frontend: `ai-review.js` attaches a button next to each prose textarea. Click → POST → render suggestions in a popover. User accepts/dismisses; suggestions never auto-write the field.
 - Error handling: missing key → 400 with friendly message shown in popover. Rate-limit/network error → message + retry button.
 
 ---
 
-## PDF export (phase 1)
+## PDF export
 
+- `public/css/app.css` — **custom CSS, flagged**. Defines accessible app theme tokens, Bootstrap color overrides, focus states, cards, forms, nav, and modal polish.
 - `public/css/print.css` — **custom CSS, flagged**. Targets `@media print`: hides app chrome, sets letter-size page, single-page resume layout, ATS-friendly type sizes, page-break rules.
 - `Preview` view applies a `body.print-preview` class for an on-screen approximation.
-- "Save as PDF" button calls `window.print()`; user picks "Save as PDF" in the browser dialog.
-- Fallback path (only if fidelity fails): vendored `html2pdf.js` or server-side Puppeteer. Re-evaluate after first end-to-end test.
-
----
-
-## PWA
-
-- `public/manifest.webmanifest` — name, short_name, icons (192, 512, maskable), theme_color, background_color, display: standalone, start_url `/`.
-- `public/service-worker.js` — cache app shell (`index.html`, vendored CSS/JS, view modules, icons) on install; network-first for `/api/*`. Navigation requests (any non-`/api` path) fall back to cached `index.html` when offline so History API deep links (e.g. `/builder/5`) keep working without a network round-trip. Versioned cache name for upgrades.
-- `pwa.js` registers SW, surfaces install prompt via `beforeinstallprompt`.
-- Icons: vendored PNGs in `public/icons/` plus `favicon.ico` and `apple-touch-icon.png`.
+- `routes/pdf.js` — `GET /api/pdf/:id` launches Puppeteer, navigates to the preview page, and streams the PDF back as `application/pdf` with `Content-Disposition: attachment`.
 
 ---
 
@@ -171,7 +163,7 @@ public/js/
 - Skip-link to `#view-root`.
 - All form inputs labeled; required fields marked with `aria-required`.
 - Modals trap focus; ESC closes.
-- Color contrast checked against Bootstrap default tokens; override only if needed (flagged custom CSS).
+- Color contrast checked against Bootstrap default tokens and app theme tokens. Primary color is `#9AC68F`; interactive states use darker green for WCAG contrast. Secondary surface is accessible cream `#FFF8E7`.
 - `prefers-reduced-motion` respected.
 - Keyboard navigability for the builder checklist tree.
 - Lighthouse run after each major view ships; screenshot at end.
@@ -204,15 +196,14 @@ public/js/
 │   ├── skills.js   certifications.js  awards.js  resumes.js  ai.js
 └── public/
     ├── index.html                SPA shell
-    ├── manifest.webmanifest
-    ├── service-worker.js
     ├── favicon.ico
     ├── icons/
     ├── vendor/                   bootstrap CSS+JS (no CDN)
     ├── css/
-    │   └── print.css             custom CSS, flagged
+    │   ├── app.css               app theme CSS, flagged
+    │   └── print.css             print/PDF CSS, flagged
     └── js/
-        ├── app.js  api.js  pwa.js
+        ├── app.js  api.js
         ├── views/                dashboard.js  profile.js  builder.js  preview.js
         └── components/           form-helpers.js  ai-review.js
 ```
@@ -228,13 +219,12 @@ public/js/
 5. **Resumes API + Dashboard view** — list/create/rename/delete resumes.
 6. **Builder view** — selection tree (sections → items → bullets), persist via `/api/resumes/:id/selections`.
 7. **Preview view** — digital render from saved selections.
-8. **Print stylesheet** — `print.css` for `window.print()` PDF export. *Custom CSS — flagged.*
+8. **Print stylesheet** — `print.css` for `@media print` (Puppeteer PDF export). *Custom CSS — flagged.*
 9. **AI integration** — `/api/ai/review`, `ai-review.js` button + popover.
-10. **PWA** — manifest, service worker, icons, install prompt.
-11. **A11y pass** — semantic markup audit, focus management, Lighthouse run, screenshot.
-12. **Branding** — final name + favicon + icons, replace placeholder.
-13. **Credits modal** — attribution required
-14. **Submission package** — README, AI usage doc, sample PDF, Lighthouse screenshot, sharing statement, dev image.
+10. **A11y pass** — semantic markup audit, focus management, Lighthouse run, screenshot.
+11. **Branding** — final name + favicon + icons, replace placeholder.
+12. **Credits modal** — attribution required
+13. **Submission package** — README, AI usage doc, sample PDF, Lighthouse screenshot, sharing statement, dev image.
 
 ---
 
@@ -244,12 +234,11 @@ public/js/
 - `db/schema.sql` — schema above.
 - `lib/db.js`, `lib/gemini.js`.
 - `routes/*.js` — one router per resource.
-- `public/index.html` — SPA shell, vendored CSS/JS links, manifest link, SW registration.
+- `public/index.html` — SPA shell, vendored CSS/JS links.
 - `public/js/app.js` — History API router (`pushState` + `popstate` + `<a data-spa>` click interceptor) + view dispatch + exported `navigate(path)` helper.
 - `public/js/views/*.js` — four views.
+- `public/css/app.css` — app theme rules (flagged custom CSS).
 - `public/css/print.css` — print rules (flagged custom CSS).
-- `public/manifest.webmanifest`, `public/service-worker.js`.
-
 ---
 
 ## Verification
@@ -259,13 +248,12 @@ End-to-end manual tests:
 2. Profile tab → add a job + 3 bullets → reload → data persists (proves SQLite + API).
 3. New resume → name + target role → builder lets you toggle sections, pick a job, pick 2 of its 3 bullets → save.
 4. Preview view shows the resume with only selected items.
-5. `Ctrl+P` or "Save as PDF" → print preview matches expected layout (single page if content fits).
+5. "Download PDF" → Puppeteer generates PDF matching expected layout (single page if content fits).
 6. Click "Review with AI" on a job bullet (with valid `GEMINI_API_KEY` in `.env`) → suggestions appear.
 7. Without `.env` key → graceful error, app still works.
 8. Lighthouse desktop run → accessibility ≥ 93. Screenshot to `docs/lighthouse.png`.
-9. PWA: Chrome DevTools → Application → manifest valid, SW registered. Install prompt fires. Offline reload of app shell works (API calls fail gracefully).
-10. `git status` confirms `.env` and `db/resume.db` not tracked.
-11. Browser-print sample resume saved as `docs/sample-resume.pdf` for submission.
+9. `git status` confirms `.env` and `db/resume.db` not tracked.
+10. Puppeteer-generated sample resume saved as `docs/sample-resume.pdf` for submission.
 
 ---
 

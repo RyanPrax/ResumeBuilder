@@ -66,7 +66,10 @@ test("POST /api/resumes — returns 201 and new id with valid body", async () =>
     const res = await fetch(`${strBaseUrl}/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Test Resume", target_role: "Software Engineer" }),
+        body: JSON.stringify({
+            name: "Test Resume",
+            target_role: "Software Engineer",
+        }),
     });
     assert.equal(res.status, 201);
     const objBody = await res.json();
@@ -113,7 +116,10 @@ test("PUT /api/resumes/:id — returns 200 with valid body", async () => {
     const res = await fetch(`${strBaseUrl}/${intTestId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Updated Resume", target_role: "Senior Engineer" }),
+        body: JSON.stringify({
+            name: "Updated Resume",
+            target_role: "Senior Engineer",
+        }),
     });
     assert.equal(res.status, 200);
 });
@@ -143,29 +149,43 @@ test("PUT /api/resumes/:id/selections — saves job and project bullets with ove
     const intSharedBulletId = -910002;
 
     const cleanup = () => {
-        db.prepare("DELETE FROM resume_bullets WHERE resume_id = @resume_id").run({ resume_id: intTestId });
-        db.prepare("DELETE FROM jobs WHERE id = @id").run({ id: intSharedItemId });
-        db.prepare("DELETE FROM projects WHERE id = @id").run({ id: intSharedItemId });
+        db.prepare(
+            "DELETE FROM resume_bullets WHERE resume_id = @resume_id",
+        ).run({ resume_id: intTestId });
+        db.prepare("DELETE FROM jobs WHERE id = @id").run({
+            id: intSharedItemId,
+        });
+        db.prepare("DELETE FROM projects WHERE id = @id").run({
+            id: intSharedItemId,
+        });
     };
     cleanup();
 
-    db.prepare("INSERT INTO jobs (id, company, title) VALUES (@id, @company, @title)").run({
+    db.prepare(
+        "INSERT INTO jobs (id, company, title) VALUES (@id, @company, @title)",
+    ).run({
         id: intSharedItemId,
         company: "Overlap Job Co",
         title: "Engineer",
     });
-    db.prepare("INSERT INTO projects (id, name, description) VALUES (@id, @name, @description)").run({
+    db.prepare(
+        "INSERT INTO projects (id, name, description) VALUES (@id, @name, @description)",
+    ).run({
         id: intSharedItemId,
         name: "Overlap Project",
         description: "Project with overlapping ids.",
     });
-    db.prepare("INSERT INTO job_bullets (id, job_id, text, sort_order) VALUES (@id, @job_id, @text, @sort_order)").run({
+    db.prepare(
+        "INSERT INTO job_bullets (id, job_id, text, sort_order) VALUES (@id, @job_id, @text, @sort_order)",
+    ).run({
         id: intSharedBulletId,
         job_id: intSharedItemId,
         text: "Job bullet with shared numeric ids.",
         sort_order: 0,
     });
-    db.prepare("INSERT INTO project_bullets (id, project_id, text, sort_order) VALUES (@id, @project_id, @text, @sort_order)").run({
+    db.prepare(
+        "INSERT INTO project_bullets (id, project_id, text, sort_order) VALUES (@id, @project_id, @text, @sort_order)",
+    ).run({
         id: intSharedBulletId,
         project_id: intSharedItemId,
         text: "Project bullet with shared numeric ids.",
@@ -184,8 +204,16 @@ test("PUT /api/resumes/:id/selections — saves job and project bullets with ove
             // parent items must be present in the items selection payload —
             // bullets cannot reference jobs/projects that were not included.
             items: [
-                { section_type: "jobs", item_id: intSharedItemId, sort_order: 0 },
-                { section_type: "projects", item_id: intSharedItemId, sort_order: 0 },
+                {
+                    section_type: "jobs",
+                    item_id: intSharedItemId,
+                    sort_order: 0,
+                },
+                {
+                    section_type: "projects",
+                    item_id: intSharedItemId,
+                    sort_order: 0,
+                },
             ],
             bullets: [
                 {
@@ -206,8 +234,14 @@ test("PUT /api/resumes/:id/selections — saves job and project bullets with ove
     assert.equal(res.status, 200);
 
     const arrSelections = db
-        .prepare("SELECT bullet_type FROM resume_bullets WHERE resume_id = @resume_id AND parent_item_id = @parent_item_id AND bullet_id = @bullet_id ORDER BY bullet_type")
-        .all({ resume_id: intTestId, parent_item_id: intSharedItemId, bullet_id: intSharedBulletId });
+        .prepare(
+            "SELECT bullet_type FROM resume_bullets WHERE resume_id = @resume_id AND parent_item_id = @parent_item_id AND bullet_id = @bullet_id ORDER BY bullet_type",
+        )
+        .all({
+            resume_id: intTestId,
+            parent_item_id: intSharedItemId,
+            bullet_id: intSharedBulletId,
+        });
     assert.deepEqual(
         arrSelections.map((objSelection) => objSelection.bullet_type),
         ["job", "project"],
@@ -311,7 +345,9 @@ test("PUT /api/resumes/:id/selections — returns 400 when bullet's parent_item_
         body: JSON.stringify({
             sections: [],
             items: [],
-            bullets: [{ bullet_type: "job", bullet_id: 1, parent_item_id: 999999 }],
+            bullets: [
+                { bullet_type: "job", bullet_id: 1, parent_item_id: 999999 },
+            ],
         }),
     });
     assert.equal(res.status, 400);
@@ -326,7 +362,9 @@ test("PUT /api/resumes/:id/selections — returns 400 for invalid bullet_type in
         body: JSON.stringify({
             sections: [],
             items: [],
-            bullets: [{ bullet_type: "invalid", bullet_id: 1, parent_item_id: 1 }],
+            bullets: [
+                { bullet_type: "invalid", bullet_id: 1, parent_item_id: 1 },
+            ],
         }),
     });
     assert.equal(res.status, 400);
@@ -338,7 +376,11 @@ test("PUT /api/resumes/:id/selections — returns 400 when sections is not an ar
     const res = await fetch(`${strBaseUrl}/${intTestId}/selections`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sections: "not-an-array", items: [], bullets: [] }),
+        body: JSON.stringify({
+            sections: "not-an-array",
+            items: [],
+            bullets: [],
+        }),
     });
     assert.equal(res.status, 400);
 });

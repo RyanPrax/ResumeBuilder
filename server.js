@@ -32,6 +32,11 @@ app.use("/api/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Serve static files (HTML, CSS, JS, vendor assets) from public/
 app.use(express.static(path.join(__dirname, "public")));
 
+// Default browser favicon request path.
+app.get("/favicon.ico", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "icons", "favicon.ico"));
+});
+
 // SPA catch-all: return index.html for any non-/api path so deep links and refreshes resolve correctly
 app.get("/{*splat}", (req, res, next) => {
     if (req.path.startsWith("/api/")) return next();

@@ -24,7 +24,9 @@ before(async () => {
 after(async () => {
     await new Promise((resolve) => server.close(resolve));
     if (intTestId !== null) {
-        db.prepare("DELETE FROM certifications WHERE id = @id").run({ id: intTestId });
+        db.prepare("DELETE FROM certifications WHERE id = @id").run({
+            id: intTestId,
+        });
     }
 });
 
@@ -64,7 +66,11 @@ test("POST /api/certifications — returns 201 and new id with valid body", asyn
     const res = await fetch(`${strBaseUrl}/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Test Cert", issuer: "Test Org", issued_date: "2024-01" }),
+        body: JSON.stringify({
+            name: "Test Cert",
+            issuer: "Test Org",
+            issued_date: "2024-01",
+        }),
     });
     assert.equal(res.status, 201);
     const objBody = await res.json();
@@ -111,7 +117,11 @@ test("PUT /api/certifications/:id — returns 200 with valid body", async () => 
     const res = await fetch(`${strBaseUrl}/${intTestId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Updated Cert", issuer: "Updated Org", issued_date: "2024-06" }),
+        body: JSON.stringify({
+            name: "Updated Cert",
+            issuer: "Updated Org",
+            issued_date: "2024-06",
+        }),
     });
     assert.equal(res.status, 200);
 });
@@ -125,17 +135,38 @@ test("DELETE /api/certifications/:id — returns 404 for unknown id", async () =
 
 test("DELETE /api/certifications/:id — removes orphaned resume_items rows", async () => {
     // Insert a fresh certification and a resume selection pointing at it
-    const objCert = db.prepare("INSERT INTO certifications (name) VALUES (@name)").run({ name: "Orphan Test Cert" });
+    const objCert = db
+        .prepare("INSERT INTO certifications (name) VALUES (@name)")
+        .run({ name: "Orphan Test Cert" });
     const intCertId = objCert.lastInsertRowid;
-    const objResume = db.prepare("INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)").run({ name: "Orphan Test Resume", target_role: "" });
+    const objResume = db
+        .prepare(
+            "INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)",
+        )
+        .run({ name: "Orphan Test Resume", target_role: "" });
     const intResumeId = objResume.lastInsertRowid;
-    db.prepare("INSERT INTO resume_items (resume_id, section_type, item_id, sort_order) VALUES (@resume_id, @section_type, @item_id, @sort_order)").run({ resume_id: intResumeId, section_type: "certifications", item_id: intCertId, sort_order: 0 });
+    db.prepare(
+        "INSERT INTO resume_items (resume_id, section_type, item_id, sort_order) VALUES (@resume_id, @section_type, @item_id, @sort_order)",
+    ).run({
+        resume_id: intResumeId,
+        section_type: "certifications",
+        item_id: intCertId,
+        sort_order: 0,
+    });
 
     const res = await fetch(`${strBaseUrl}/${intCertId}`, { method: "DELETE" });
     assert.equal(res.status, 200);
 
-    const arrOrphans = db.prepare("SELECT id FROM resume_items WHERE section_type = 'certifications' AND item_id = @item_id").all({ item_id: intCertId });
-    assert.equal(arrOrphans.length, 0, "resume_items row must be removed when certification is deleted");
+    const arrOrphans = db
+        .prepare(
+            "SELECT id FROM resume_items WHERE section_type = 'certifications' AND item_id = @item_id",
+        )
+        .all({ item_id: intCertId });
+    assert.equal(
+        arrOrphans.length,
+        0,
+        "resume_items row must be removed when certification is deleted",
+    );
 
     db.prepare("DELETE FROM resumes WHERE id = @id").run({ id: intResumeId });
 });

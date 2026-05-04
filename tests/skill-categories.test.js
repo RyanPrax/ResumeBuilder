@@ -23,7 +23,9 @@ before(async () => {
 after(async () => {
     await new Promise((resolve) => server.close(resolve));
     if (intTestId !== null) {
-        db.prepare("DELETE FROM skill_categories WHERE id = @id").run({ id: intTestId });
+        db.prepare("DELETE FROM skill_categories WHERE id = @id").run({
+            id: intTestId,
+        });
     }
 });
 

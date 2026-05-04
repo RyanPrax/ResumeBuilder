@@ -65,7 +65,12 @@ test("POST /api/awards — returns 201 and new id with valid body", async () => 
     const res = await fetch(`${strBaseUrl}/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Test Award", issuer: "Test Org", issued_date: "2024-01", description: "A test award." }),
+        body: JSON.stringify({
+            name: "Test Award",
+            issuer: "Test Org",
+            issued_date: "2024-01",
+            description: "A test award.",
+        }),
     });
     assert.equal(res.status, 201);
     const objBody = await res.json();
@@ -112,7 +117,12 @@ test("PUT /api/awards/:id — returns 200 with valid body", async () => {
     const res = await fetch(`${strBaseUrl}/${intTestId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Updated Award", issuer: "Updated Org", issued_date: "2024-06", description: "Updated." }),
+        body: JSON.stringify({
+            name: "Updated Award",
+            issuer: "Updated Org",
+            issued_date: "2024-06",
+            description: "Updated.",
+        }),
     });
     assert.equal(res.status, 200);
 });
@@ -126,17 +136,40 @@ test("DELETE /api/awards/:id — returns 404 for unknown id", async () => {
 
 test("DELETE /api/awards/:id — removes orphaned resume_items rows", async () => {
     // Insert a fresh award and a resume selection pointing at it
-    const objAward = db.prepare("INSERT INTO awards (name) VALUES (@name)").run({ name: "Orphan Test Award" });
+    const objAward = db
+        .prepare("INSERT INTO awards (name) VALUES (@name)")
+        .run({ name: "Orphan Test Award" });
     const intAwardId = objAward.lastInsertRowid;
-    const objResume = db.prepare("INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)").run({ name: "Orphan Test Resume", target_role: "" });
+    const objResume = db
+        .prepare(
+            "INSERT INTO resumes (name, target_role) VALUES (@name, @target_role)",
+        )
+        .run({ name: "Orphan Test Resume", target_role: "" });
     const intResumeId = objResume.lastInsertRowid;
-    db.prepare("INSERT INTO resume_items (resume_id, section_type, item_id, sort_order) VALUES (@resume_id, @section_type, @item_id, @sort_order)").run({ resume_id: intResumeId, section_type: "awards", item_id: intAwardId, sort_order: 0 });
+    db.prepare(
+        "INSERT INTO resume_items (resume_id, section_type, item_id, sort_order) VALUES (@resume_id, @section_type, @item_id, @sort_order)",
+    ).run({
+        resume_id: intResumeId,
+        section_type: "awards",
+        item_id: intAwardId,
+        sort_order: 0,
+    });
 
-    const res = await fetch(`${strBaseUrl}/${intAwardId}`, { method: "DELETE" });
+    const res = await fetch(`${strBaseUrl}/${intAwardId}`, {
+        method: "DELETE",
+    });
     assert.equal(res.status, 200);
 
-    const arrOrphans = db.prepare("SELECT id FROM resume_items WHERE section_type = 'awards' AND item_id = @item_id").all({ item_id: intAwardId });
-    assert.equal(arrOrphans.length, 0, "resume_items row must be removed when award is deleted");
+    const arrOrphans = db
+        .prepare(
+            "SELECT id FROM resume_items WHERE section_type = 'awards' AND item_id = @item_id",
+        )
+        .all({ item_id: intAwardId });
+    assert.equal(
+        arrOrphans.length,
+        0,
+        "resume_items row must be removed when award is deleted",
+    );
 
     db.prepare("DELETE FROM resumes WHERE id = @id").run({ id: intResumeId });
 });

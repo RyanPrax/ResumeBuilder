@@ -20,7 +20,9 @@ const router = Router();
 
 router.get("/", (req, res) => {
     try {
-        const arrJobs = db.prepare("SELECT * FROM jobs ORDER BY sort_order").all();
+        const arrJobs = db
+            .prepare("SELECT * FROM jobs ORDER BY sort_order")
+            .all();
         res.status(200).json(arrJobs);
     } catch (err) {
         console.error("GET /api/jobs error:", err);
@@ -62,8 +64,17 @@ router.post("/", (req, res) => {
 
     try {
         const result = db
-            .prepare("INSERT INTO jobs (company, title, location, start_date, end_date, is_current) VALUES (@company, @title, @location, @start_date, @end_date, @is_current)")
-            .run({ company, title, location, start_date, end_date, is_current });
+            .prepare(
+                "INSERT INTO jobs (company, title, location, start_date, end_date, is_current) VALUES (@company, @title, @location, @start_date, @end_date, @is_current)",
+            )
+            .run({
+                company,
+                title,
+                location,
+                start_date,
+                end_date,
+                is_current,
+            });
         res.status(201).json({
             message: "Job created successfully",
             id: result.lastInsertRowid,
@@ -96,8 +107,19 @@ router.put("/:id", (req, res) => {
 
     try {
         const result = db
-            .prepare("UPDATE jobs SET company = @company, title = @title, location = @location, start_date = @start_date, end_date = @end_date, is_current = @is_current, sort_order = @sort_order WHERE id = @id")
-            .run({ company, title, location, start_date, end_date, is_current, sort_order, id });
+            .prepare(
+                "UPDATE jobs SET company = @company, title = @title, location = @location, start_date = @start_date, end_date = @end_date, is_current = @is_current, sort_order = @sort_order WHERE id = @id",
+            )
+            .run({
+                company,
+                title,
+                location,
+                start_date,
+                end_date,
+                is_current,
+                sort_order,
+                id,
+            });
         if (result.changes === 0) {
             return res.status(404).json({ message: "Job not found" });
         }
@@ -121,13 +143,17 @@ router.delete("/:id", (req, res) => {
         // so orphaned selections must be removed manually.
         const deleteJob = db.transaction(() => {
             // Remove any resume bullet selections referencing bullets owned by this job
-            db.prepare(`
+            db.prepare(
+                `
                 DELETE FROM resume_bullets
                 WHERE bullet_type = 'job'
                 AND bullet_id IN (SELECT id FROM job_bullets WHERE job_id = @id)
-            `).run({ id });
+            `,
+            ).run({ id });
             // Remove any resume item selections for this job
-            db.prepare("DELETE FROM resume_items WHERE section_type = 'jobs' AND item_id = @id").run({ id });
+            db.prepare(
+                "DELETE FROM resume_items WHERE section_type = 'jobs' AND item_id = @id",
+            ).run({ id });
             // Delete the job (also cascades job_bullets via schema ON DELETE CASCADE)
             return db.prepare("DELETE FROM jobs WHERE id = @id").run({ id });
         });
@@ -151,7 +177,9 @@ router.get("/:id/bullets", (req, res) => {
     }
     try {
         const arrBullets = db
-            .prepare("SELECT * FROM job_bullets WHERE job_id = @job_id ORDER BY sort_order")
+            .prepare(
+                "SELECT * FROM job_bullets WHERE job_id = @job_id ORDER BY sort_order",
+            )
             .all({ job_id });
         res.status(200).json(arrBullets);
     } catch (err) {
@@ -172,12 +200,16 @@ router.post("/:id/bullets", (req, res) => {
         return res.status(400).json({ message: "text is required" });
     }
     try {
-        const arrJob = db.prepare("SELECT id FROM jobs WHERE id = @id").all({ id: job_id });
+        const arrJob = db
+            .prepare("SELECT id FROM jobs WHERE id = @id")
+            .all({ id: job_id });
         if (arrJob.length === 0) {
             return res.status(404).json({ message: "Job not found" });
         }
         const result = db
-            .prepare("INSERT INTO job_bullets (job_id, text, sort_order) VALUES (@job_id, @text, @sort_order)")
+            .prepare(
+                "INSERT INTO job_bullets (job_id, text, sort_order) VALUES (@job_id, @text, @sort_order)",
+            )
             .run({ job_id, text, sort_order });
         res.status(201).json({
             message: "Bullet created successfully",
@@ -206,7 +238,9 @@ router.put("/:id/bullets/:bid", (req, res) => {
     }
     try {
         const result = db
-            .prepare("UPDATE job_bullets SET text = @text, sort_order = @sort_order WHERE id = @id AND job_id = @job_id")
+            .prepare(
+                "UPDATE job_bullets SET text = @text, sort_order = @sort_order WHERE id = @id AND job_id = @job_id",
+            )
             .run({ text, sort_order, id, job_id });
         if (result.changes === 0) {
             return res.status(404).json({ message: "Bullet not found" });
@@ -232,9 +266,15 @@ router.delete("/:id/bullets/:bid", (req, res) => {
         // Use a transaction so resume selection cleanup and the bullet delete are atomic.
         // resume_bullets is polymorphic and has no FK cascade from job_bullets.
         const deleteBullet = db.transaction(() => {
-            const result = db.prepare("DELETE FROM job_bullets WHERE id = @id AND job_id = @job_id").run({ id, job_id });
+            const result = db
+                .prepare(
+                    "DELETE FROM job_bullets WHERE id = @id AND job_id = @job_id",
+                )
+                .run({ id, job_id });
             if (result.changes > 0) {
-                db.prepare("DELETE FROM resume_bullets WHERE bullet_type = 'job' AND bullet_id = @id").run({ id });
+                db.prepare(
+                    "DELETE FROM resume_bullets WHERE bullet_type = 'job' AND bullet_id = @id",
+                ).run({ id });
             }
             return result;
         });

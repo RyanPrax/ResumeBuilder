@@ -30,7 +30,7 @@ after(async () => {
     // Restore original contact data so other tests and the app see a clean state.
     if (objOriginalContact) {
         db.prepare(
-            "UPDATE contact SET full_name = @full_name, email = @email, phone = @phone, location = @location, links_json = @links_json WHERE id = 1"
+            "UPDATE contact SET full_name = @full_name, email = @email, phone = @phone, location = @location, links_json = @links_json WHERE id = 1",
         ).run(objOriginalContact);
     }
 });
@@ -47,13 +47,20 @@ test("GET /api/contact — returns 200 and a JSON array", async () => {
 test("GET /api/contact — array contains exactly one element (singleton row)", async () => {
     const res = await fetch(`${strBaseUrl}/`);
     const arrBody = await res.json();
-    assert.equal(arrBody.length, 1, "contact table should always have exactly one row");
+    assert.equal(
+        arrBody.length,
+        1,
+        "contact table should always have exactly one row",
+    );
 });
 
 test("GET /api/contact — links_json is returned as an array not a raw JSON string", async () => {
     const res = await fetch(`${strBaseUrl}/`);
     const arrBody = await res.json();
-    assert.ok(Array.isArray(arrBody[0].links_json), "links_json should be parsed to an array before responding");
+    assert.ok(
+        Array.isArray(arrBody[0].links_json),
+        "links_json should be parsed to an array before responding",
+    );
 });
 
 // PUT — validation errors
@@ -91,7 +98,9 @@ test("PUT /api/contact — returns 400 when a link has an empty label", async ()
     const res = await fetch(`${strBaseUrl}/`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ links_json: [{ label: "  ", url: "https://example.com" }] }),
+        body: JSON.stringify({
+            links_json: [{ label: "  ", url: "https://example.com" }],
+        }),
     });
     assert.equal(res.status, 400);
 });

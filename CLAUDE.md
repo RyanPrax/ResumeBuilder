@@ -21,11 +21,11 @@ Project-specific agents live in `.claude/agents/`. Claude Code loads them automa
 
 ## Project Overview
 
-**ResumeBuilder** — local-only single-page application for the CSC3100 final. Helps students store a library of jobs/projects/skills/certs/awards, then assemble a tailored, printable resume for a target role. Gemini AI is used on-demand to review user-entered prose. See `implementation_plan.md` for the full design.
+**Resume Frog** — local-only single-page application for the CSC3100 final. Helps students store a library of jobs/projects/skills/certs/awards, then assemble a tailored, printable resume for a target role. Gemini AI is used on-demand to review user-entered prose. See `implementation_plan.md` for the full design.
 
 Stack (locked by assignment):
 - Frontend: vanilla HTML/CSS/JS, **no React or other frameworks**. SPA — single `public/index.html`, History API routing (`pushState` + `popstate`), views show/hide via DOM swaps.
-- Styling: Bootstrap utility classes only. Custom CSS limited to `public/css/print.css` (print layout) and explicitly flagged in `implementation_plan.md`.
+- Styling: Bootstrap utility classes plus explicitly flagged CSS in `public/css/app.css` (theme) and `public/css/print.css` (print layout). Both are listed in `implementation_plan.md`.
 - Backend: Node.js + Express **RESTful** APIs. **No MVC, no SSR.**
 - Database: SQLite via `better-sqlite3`.
 - AI: Google Gemini via `@google/generative-ai`.
@@ -65,10 +65,9 @@ rm db/resume.db && npm start
 - **public/js/views/** — `dashboard.js`, `profile.js`, `builder.js`, `preview.js`. Each renders into `#view-root` and wires delegated event listeners.
 - **public/js/components/** — `form-helpers.js` (form binding utilities), `ai-review.js` ("Review with AI" button + suggestion popover).
 - **public/js/api.js** — Thin `fetch` helpers for the `/api/*` surface.
-- **public/js/pwa.js** — Service worker registration + install-prompt handling.
+- **public/css/app.css** — app theme overrides. **Custom CSS — flagged.** Defines the accessible primary color `#9AC68F`, cream secondary surface, focus states, and Bootstrap token overrides.
 - **public/css/print.css** — `@media print` rules for the resume layout. **Custom CSS — flagged.** Hides app chrome, sets letter-size page, ATS-friendly type, page-break rules.
 - **public/vendor/** — Vendored Bootstrap CSS+JS and any other third-party libraries. No CDN references anywhere in `index.html`.
-- **public/manifest.webmanifest**, **public/service-worker.js** — PWA shell. Caches app shell on install; network-first for `/api/*`. Navigation requests (any non-`/api` path) fall back to cached `index.html` when offline so deep links keep working without a network round-trip.
 - **docs/ai-usage.md** — Narrative AI-usage summary (required for submission).
 - **docs/lighthouse.png** — Lighthouse accessibility ≥ 93 evidence (required for submission).
 - **docs/sample-resume.pdf** — Example printed resume (required for submission).
@@ -81,11 +80,11 @@ Routes are real URL paths driven by the History API. The Express catch-all retur
 - `/dashboard` — saved resumes list + "New resume" + "Edit profile data".
 - `/profile/:tab` — tabbed forms per entity (`contact`, `summary`, `education`, `jobs`, `projects`, `skills`, `certs`, `awards`).
 - `/builder/:id` — resume metadata + checklist tree (sections → items → bullets).
-- `/preview/:id` — digital render; "Print / Save as PDF" triggers `window.print()`.
+- `/preview/:id` — digital render; "Download PDF" triggers server-side Puppeteer export via `/api/pdf/:id`.
 
 In-app links use `<a href="/path" data-spa>`; the router intercepts `data-spa` clicks (skipping new-tab modifiers) and calls `history.pushState`. Programmatic transitions after API calls use `navigate('/builder/' + id)` exported from `app.js`. Back/forward fires `popstate`, which re-runs the dispatcher.
 
-PDF export is **Phase 1: `window.print()` + `@media print` CSS**. If fidelity fails, fall back to vendored `html2pdf.js` or server-side Puppeteer (see `implementation_plan.md`).
+PDF export: server-side Puppeteer (`routes/pdf.js`). Client requests `GET /api/pdf/:id`; server renders the preview page headlessly and streams back a PDF file.
 
 ## AI Integration
 
@@ -94,7 +93,7 @@ PDF export is **Phase 1: `window.print()` + `@media print` CSS**. If fidelity fa
 - Frontend never auto-applies suggestions — user accepts/dismisses in a popover.
 - Missing `GEMINI_API_KEY` → 400 with friendly message in popover. App still works without AI.
 
-The assignment also requires a UI for users to supply their own Gemini key. Current implementation reads from `.env` only; the deviation is documented in `README.md` and `docs/ai-usage.md`.
+The assignment also requires a UI for users to supply their own Gemini key. Current implementation supports this through `/settings` and `/api/settings/api-key`; a stored database key takes priority over `GEMINI_API_KEY` from `.env`.
 
 ## AI-Assisted Code
 
@@ -162,7 +161,7 @@ Always let the user review changes to `public/index.html` and any HTML fragments
 
 ## Code Style
 
-- **Bootstrap utilities only.** Do not add custom CSS rules. The single permitted exception is `public/css/print.css` (print layout). If a custom rule is unavoidable elsewhere, raise it explicitly — it must be added to the flagged-CSS list in `implementation_plan.md`.
+- **Bootstrap utilities first.** Custom CSS is limited to explicitly flagged files: `public/css/app.css` for the app theme and `public/css/print.css` for print/PDF layout. If another custom rule is unavoidable elsewhere, raise it explicitly — it must be added to the flagged-CSS list in `implementation_plan.md`.
 - Vanilla JS, ES modules. **No React, Vue, jQuery, or other frameworks.**
 - 4-space indentation, semicolons, double quotes (enforced by Prettier via `npm run fmt`).
 - Express routes return JSON. No server-side rendering, no MVC layering.

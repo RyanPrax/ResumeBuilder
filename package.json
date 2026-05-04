@@ -8,13 +8,16 @@
         "start": "node server.js",
         "test": "node --test",
         "lint": "eslint .",
-        "fmt": "prettier --write \"**/*.js\""
+        "fmt": "prettier --write \"**/*.js\"",
+        "clean": "node scripts/clean-db.js",
+        "seed": "node scripts/seed.js"
     },
     "dependencies": {
         "@google/generative-ai": "^0.24.1",
         "better-sqlite3": "^12.9.0",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
+        "puppeteer-core": "^24.42.0",
         "swagger-ui-express": "^5.0.1"
     },
     "devDependencies": {
