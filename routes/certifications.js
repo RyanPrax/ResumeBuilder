@@ -84,10 +84,10 @@ router.put("/:id", (req, res) => {
             .prepare(strQuery)
             .run({ name, issuer, issued_date, sort_order, id });
         if (result.changes === 0) {
-            return res.status(404).json({ message: "Certifications not found" });
+            return res.status(404).json({ message: "Certification not found" });
         }
         res.status(200).json({
-            message: "Certifications information updated successfully",
+            message: "Certification updated successfully",
         });
     } catch (err) {
         console.error("PUT /api/certifications/:id error:", err);

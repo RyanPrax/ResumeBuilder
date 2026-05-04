@@ -73,7 +73,7 @@ resume_items       (id, resume_id FK CASCADE, section_type, item_id, sort_order)
                    -- UNIQUE (resume_id, section_type, item_id)
 resume_bullets     (id, resume_id FK CASCADE, parent_item_id, bullet_type, bullet_id, sort_order)
                    -- bullet_type CHECK ∈ {job, project} — disambiguates job_bullets vs project_bullets
-                   -- UNIQUE (resume_id, parent_item_id, bullet_id)
+                   -- UNIQUE (resume_id, parent_item_id, bullet_type, bullet_id)
 ```
 
 Use `better-sqlite3` (synchronous, fast for local single-user). Schema lives in `db/schema.sql`, applied on boot if DB missing.
