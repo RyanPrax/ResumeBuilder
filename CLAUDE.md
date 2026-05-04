@@ -4,6 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) and Codex when worki
 
 It also serves as the **AI rules file** required by the CSC3100 final assignment submission. See `docs/ai-usage.md` for a narrative summary of how AI was used during development.
 
+## AI Tooling
+
+### Local Subagents (Claude Code)
+
+Project-specific agents live in `.claude/agents/`. Claude Code loads them automatically — invoke via the Agent tool or `@agent-name` in prompts.
+
+| Agent | Purpose | When to use |
+|---|---|---|
+| `backend-dev` | Express routes, SQLite, lib modules | Any server-side implementation |
+| `frontend-dev` | Vanilla JS SPA, Bootstrap, a11y | Any client-side implementation |
+| `code-reviewer` | Convention compliance audit | After writing/editing any .js/.html/.css |
+| `test-writer` | node:test route + lib tests, real SQLite | New route file, new lib module, security logic |
+| `security-guard` | SQL injection, XSS, input validation, CVEs | Before any commit touching routes or deps |
+| `sync-checker` | Code/schema/docs consistency | After schema changes or architectural decisions |
+
 ## Project Overview
 
 **ResumeBuilder** — local-only single-page application for the CSC3100 final. Helps students store a library of jobs/projects/skills/certs/awards, then assemble a tailored, printable resume for a target role. Gemini AI is used on-demand to review user-entered prose. See `implementation_plan.md` for the full design.
