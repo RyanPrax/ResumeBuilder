@@ -64,6 +64,7 @@ body:not(.print-preview) #main-content {
 
 .navbar .nav-link {
     color: rgba(255, 248, 231, 0.78) !important;
+    font-size: 1.08rem;
 }
 
 .navbar .nav-link:hover,
