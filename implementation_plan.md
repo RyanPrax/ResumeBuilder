@@ -14,7 +14,7 @@ AI review trigger: **On-demand "Review" button** per field/section.
 Resume sections: Contact info **required**; Summary, Education, Jobs, Projects, Skills, Certifications, Awards all **optional and dynamic** per resume.
 
 Saved resumes: **Named resume records** persisted in SQLite (history of generated resumes with selections).
-Gemini key storage **`.env` only.** 
+Gemini key storage: **DB singleton `settings` table takes priority; `.env` GEMINI_API_KEY is fallback.** UI widget on profile page top-right lets users paste and save their own key via `PUT /api/settings/api-key`.
 
 ---
 
@@ -44,9 +44,11 @@ Gemini key storage **`.env` only.**
 Single-user local app — no auth.
 
 ```
--- Singleton (always one row, id=1)
+-- Singletons (always one row, id=1)
 contact            (id, full_name, email, phone, location, links_json, updated_at)
                    -- CHECK (id = 1); links_json is JSON array of {label,url}
+settings           (id, gemini_api_key, updated_at)
+                   -- CHECK (id = 1); gemini_api_key defaults to '' (empty = use .env fallback)
 
 -- Summary library (non-singleton — store multiple variants, pick one per resume)
 summaries          (id, label, content, sort_order, updated_at)
@@ -140,7 +142,7 @@ public/js/
 
 ## AI integration
 
-- `routes/ai.js`: `POST /api/ai/review` → reads `process.env.GEMINI_API_KEY`, calls Gemini via `@google/generative-ai`. Prompt template per section type (e.g., "Review this resume bullet for impact, action verbs, quantified results: {text}. Return 2-3 concise suggestions.").
+- `routes/ai.js`: `POST /api/ai/review` → calls `getActiveApiKey()` (DB key priority, env fallback), then calls Gemini via `@google/generative-ai`. Prompt template per section type (e.g., "Review this resume bullet for impact, action verbs, quantified results: {text}. Return 2-3 concise suggestions.").
 - Frontend: `ai-review.js` attaches a button next to each prose textarea. Click → POST → render suggestions in a popover. User accepts/dismisses; suggestions never auto-write the field.
 - Error handling: missing key → 400 with friendly message shown in popover. Rate-limit/network error → message + retry button.
 

@@ -8,7 +8,7 @@
 // without ever attempting a network call to Gemini.
 
 import { Router } from "express";
-import { reviewSection } from "../lib/gemini.js";
+import { reviewSection, getActiveApiKey } from "../lib/gemini.js";
 
 const router = Router();
 
@@ -110,7 +110,8 @@ router.post("/review", async (req, res) => {
         return res.status(400).json({ message: "Input contains disallowed content" });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    // Check DB-stored key first, then fall back to env — mirrors getActiveApiKey() priority logic
+    if (!getActiveApiKey()) {
         return res.status(400).json({ message: "AI review is not available — GEMINI_API_KEY is not configured" });
     }
 

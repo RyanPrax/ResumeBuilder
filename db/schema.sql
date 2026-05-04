@@ -187,6 +187,20 @@ CREATE TABLE IF NOT EXISTS resume_bullets (
 CREATE INDEX IF NOT EXISTS idx_resume_bullets_resume ON resume_bullets(resume_id);
 
 -- ============================================================
+-- Settings singleton table (always exactly one row, id = 1)
+-- Stores user-configurable app settings, including optional Gemini API key.
+-- The key is stored as plain text (local-only app, no multi-user auth).
+-- Routes read this before falling back to the .env GEMINI_API_KEY.
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS settings (
+  id              INTEGER PRIMARY KEY CHECK (id = 1),
+  gemini_api_key  TEXT    NOT NULL DEFAULT '',
+  updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+INSERT OR IGNORE INTO settings (id) VALUES (1);
+
+-- ============================================================
 -- Triggers: keep updated_at current on every UPDATE
 -- ============================================================
 
@@ -206,4 +220,10 @@ CREATE TRIGGER IF NOT EXISTS trg_resumes_updated
   AFTER UPDATE ON resumes
   BEGIN
     UPDATE resumes SET updated_at = datetime('now') WHERE id = NEW.id;
+  END;
+
+CREATE TRIGGER IF NOT EXISTS trg_settings_updated
+  AFTER UPDATE ON settings
+  BEGIN
+    UPDATE settings SET updated_at = datetime('now') WHERE id = NEW.id;
   END;

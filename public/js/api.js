@@ -298,6 +298,28 @@ export async function putResumeSelections(intId, objSelections) {
 }
 
 // ============================================================
+// Settings — Gemini API key management
+// ============================================================
+
+/** Returns [{ has_key: boolean }] — never exposes the raw key value. */
+export async function getApiKeyStatus() {
+    return request("/api/settings/api-key");
+}
+
+/** Store a new Gemini API key. @param {string} strApiKey */
+export async function putApiKey(strApiKey) {
+    return request("/api/settings/api-key", {
+        method: "PUT",
+        body: JSON.stringify({ api_key: strApiKey }),
+    });
+}
+
+/** Clear the stored Gemini API key, reverting to .env fallback. */
+export async function deleteApiKey() {
+    return request("/api/settings/api-key", { method: "DELETE" });
+}
+
+// ============================================================
 // AI review
 // ============================================================
 

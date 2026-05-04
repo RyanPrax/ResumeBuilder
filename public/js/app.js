@@ -34,6 +34,12 @@ const arrRoutes = [
         keys: ["id"],
         modulePath: "/js/views/preview.js",
     },
+    {
+        // /settings — app settings (Gemini API key, etc.)
+        pattern: /^\/settings$/,
+        keys: [],
+        modulePath: "/js/views/settings.js",
+    },
 ];
 
 // ============================================================
