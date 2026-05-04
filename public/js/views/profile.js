@@ -18,7 +18,7 @@ import {
 } from "/js/api.js";
 // navigate imported but not used in this view — profile stays in-place after saves
 import { showError, showSuccess, confirmDelete, disableSubmit } from "/js/components/form-helpers.js";
-import { attachAiReview } from "/js/components/ai-review.js";
+import { attachAiReview, createAiReviewButton } from "/js/components/ai-review.js";
 
 // ============================================================
 // Tab definitions — order matches the UI tab bar
@@ -325,7 +325,7 @@ async function renderEducationTab(elContainer) {
             { name: "start_date", label: "Start Date", type: "text", placeholder: "YYYY-MM" },
             { name: "end_date", label: "End Date", type: "text", placeholder: "YYYY-MM or leave blank" },
             { name: "gpa", label: "GPA", type: "text" },
-            { name: "details", label: "Additional Details", type: "textarea", rows: 3 },
+            { name: "details", label: "Additional Details", type: "textarea", rows: 3, aiReview: "education" },
         ],
     });
 }
@@ -957,14 +957,18 @@ function renderBulletList(elContainer, arrBullets, intParentId, strType, fnRefre
             if (elEditBtn.textContent === "Cancel") {
                 elEditBtn.textContent = "Edit";
                 elText.textContent = objBullet.text;
-                const elOldInput = elLi.querySelector(".bullet-edit-input");
-                if (elOldInput) elOldInput.remove();
+                // Remove the edit input and any buttons added for edit mode
+                elLi.querySelector(".bullet-edit-input")?.remove();
+                elLi.querySelector(".bullet-save-btn")?.remove();
+                elLi.querySelector(".bullet-ai-btn")?.remove();
                 return;
             }
             elText.textContent = "";
-            const elInput = document.createElement("input");
-            elInput.type = "text";
-            elInput.className = "form-control form-control-sm flex-grow-1 bullet-edit-input";
+            // Textarea allows long bullet text to wrap across multiple lines
+            const elInput = document.createElement("textarea");
+            elInput.rows = 2;
+            // Match the size of other text inputs in the app (no form-control-sm)
+            elInput.className = "form-control flex-grow-1 bullet-edit-input";
             elInput.value = objBullet.text;
             elInput.setAttribute("aria-label", "Edit bullet text");
             elText.appendChild(elInput);
@@ -972,10 +976,18 @@ function renderBulletList(elContainer, arrBullets, intParentId, strType, fnRefre
 
             const elSaveBtn = document.createElement("button");
             elSaveBtn.type = "button";
-            elSaveBtn.className = "btn btn-sm btn-primary py-0 px-1";
+            elSaveBtn.className = "btn btn-sm btn-primary py-0 px-1 bullet-save-btn";
             elSaveBtn.textContent = "Save";
             elSaveBtn.setAttribute("aria-label", "Save bullet edit");
+
+            // AI review button for the inline edit field
+            const strSectionType = strType === "job" ? "jobs" : "projects";
+            const elAiBtn = createAiReviewButton(elInput, strSectionType);
+            elAiBtn.classList.add("py-0", "px-1", "bullet-ai-btn");
+
+            // Prepend in reverse order so final layout is: [AI] [Save] [Cancel] [Delete]
             elBtns.prepend(elSaveBtn);
+            elBtns.prepend(elAiBtn);
 
             elSaveBtn.addEventListener("click", async () => {
                 const strNewText = elInput.value.trim();
@@ -1010,14 +1022,20 @@ function renderBulletList(elContainer, arrBullets, intParentId, strType, fnRefre
  * @returns {HTMLElement}
  */
 function buildBulletAddForm(intParentId, strType, fnRefresh) {
-    const elDiv = document.createElement("div");
-    elDiv.className = "d-flex gap-2 mt-1";
+    const strSectionType = strType === "job" ? "jobs" : "projects";
 
-    const elInput = document.createElement("input");
-    elInput.type = "text";
-    elInput.className = "form-control form-control-sm";
+    const elDiv = document.createElement("div");
+    elDiv.className = "mt-1";
+
+    // Textarea allows long bullet text to wrap across multiple lines
+    const elInput = document.createElement("textarea");
+    elInput.rows = 2;
+    elInput.className = "form-control mb-2";
     elInput.placeholder = "Add a bullet point…";
     elInput.setAttribute("aria-label", "New bullet text");
+
+    const elBtnRow = document.createElement("div");
+    elBtnRow.className = "d-flex gap-2";
 
     const elAddBtn = document.createElement("button");
     elAddBtn.type = "button";
@@ -1046,8 +1064,14 @@ function buildBulletAddForm(intParentId, strType, fnRefresh) {
         if (e.key === "Enter") { e.preventDefault(); fnAdd(); }
     });
 
+    // AI review button placed alongside the Add button below the input
+    const elAiBtn = createAiReviewButton(elInput, strSectionType);
+
     elDiv.appendChild(elInput);
-    elDiv.appendChild(elAddBtn);
+    elBtnRow.appendChild(elAiBtn);
+    elBtnRow.appendChild(elAddBtn);
+    elDiv.appendChild(elBtnRow);
+
     return elDiv;
 }
 
@@ -1354,7 +1378,7 @@ async function renderAwardsTab(elContainer) {
             { name: "name", label: "Name", type: "text", required: true },
             { name: "issuer", label: "Issuer", type: "text" },
             { name: "issued_date", label: "Date", type: "text", placeholder: "YYYY-MM" },
-            { name: "description", label: "Description", type: "textarea", rows: 3 },
+            { name: "description", label: "Description", type: "textarea", rows: 3, aiReview: "awards" },
         ],
     });
 }
