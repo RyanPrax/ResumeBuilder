@@ -93,7 +93,7 @@ PDF export: server-side Puppeteer (`routes/pdf.js`). Client requests `GET /api/p
 - Frontend never auto-applies suggestions — user accepts/dismisses in a popover.
 - Missing `GEMINI_API_KEY` → 400 with friendly message in popover. App still works without AI.
 
-The assignment also requires a UI for users to supply their own Gemini key. Current implementation reads from `.env` only; the deviation is documented in `README.md` and `docs/ai-usage.md`.
+The assignment also requires a UI for users to supply their own Gemini key. Current implementation supports this through `/settings` and `/api/settings/api-key`; a stored database key takes priority over `GEMINI_API_KEY` from `.env`.
 
 ## AI-Assisted Code
 
